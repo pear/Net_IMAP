@@ -1,7 +1,40 @@
 <?
-//require_once('../IMAPProtocol.php');
+//
+// +----------------------------------------------------------------------+
+// | PHP Version 4                                                        |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 1997-2003 The PHP Group                                |
+// +----------------------------------------------------------------------+
+// | This source file is subject to version 2.02 of the PHP license,      |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available at through the world-wide-web at                           |
+// | http://www.php.net/license/2_02.txt.                                 |
+// | If you did not receive a copy of the PHP license and are unable to   |
+// | obtain it through the world-wide-web, please send a note to          |
+// | license@php.net so we can mail you a copy immediately.               |
+// +----------------------------------------------------------------------+
+// | Author: Damian Alejandro Fernandez Sosa <damlists@cnba.uba.ar>       |
+// +----------------------------------------------------------------------+
+
+
+/*
+
+This sample shows the parsed returning of the IMAPProtocol methods
+this is only useful for testing and to low level IMAP access example
+
+
+
+*/
+
+
+
+
 require_once('Net/IMAPProtocol.php');
 error_reporting(E_ALL);
+
+
+
+
 
 $user="user";
 $passwd="password";
@@ -9,7 +42,7 @@ $host="localhost";
 $port="143";
 
 
-//require_once("../passwords.php");
+require_once("../passwords.php");
 
 $a= new  Net_IMAPProtocol();
 
@@ -115,13 +148,6 @@ print_r($aaa=$a->cmdSubscribe("inbox.test1"));
 echo "Method cmdStatus()\n";
 print_r($aaa=$a->cmdStatus("inbox","MESSAGES UNSEEN"));
 
-
-
-
-
-
-
-  
 
 
 
