@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!-- do not use the "Type" attribute here, that one is only for
+     generated package.xml files -->
+<package version="1.0">
+  <name>Net_IMAP</name>
+  <summary>Provides an implementation of the IMAP protocol</summary>
+  <description>
+Provides an implementation of the IMAP4Rev1 protocol using PEAR's Net_Socket and Auth_SASL class.
+  </description>
+  <license>PHP License</license>
+  <maintainers>
+    <maintainer>
+      <user>damian</user>
+      <role>lead</role>
+      <name>Damian Alejandro Fernandez Sosa</name>
+      <email>damlists@cnba.uba.ar</email>
+    </maintainer>
+  </maintainers>
+  <release>
+    <version>0.2</version>
+    <date>2003-02-24</date>
+    <notes>
+- login method can authenticate with the following methods: DIGEST-MD4, CRAM-MD5, LOGIN and the login command
+- Fixed require_once bug
+- A lot of new mailbox-related functions
+- 2 Examples of use
+- fixes in protocol parser
+    </notes>
+    <state>beta</state>
+    <filelist>
+      <file role="php" baseinstalldir="Net">IMAP.php</file>
+      <file role="php" baseinstalldir="Net">IMAPProtocol.php</file>
+      <file role="test">docs/test_IMAP.php</file>
+      <file role="test">docs/test_IMAPProtocol.php</file>
+    </filelist>
+    <deps>
+      <dep type="pkg" rel="has">Net_Socket</dep>    
+      <dep type="pkg" rel="has">Auth_SASL</dep>    
+    </deps>
+  </release>
+  <changelog>
+    <release>
+      <version>0.2</version>
+      <date>2003-02-22</date>
+      <notes>
+- Ups  I call require_once ./IMAPProtocol.php instead of require_once Net/IMAPProtocol.php sorry
+- login method can authenticate with the following methods: DIGEST-MD4, CRAM-MD5, LOGIN and the login command
+- A lot of new mailbox-related functions
+- 2 Examples of use to the test  directory
+- fixes in protocol parser
+      </notes>
+      <state>beta</state>
+      <deps>
+        <dep type="pkg" rel="has">Net_Socket</dep>    
+        <dep type="pkg" rel="has">Auth_SASL</dep>    
+      </deps>
+    </release>
+    <release>
+      <version>0.1</version>
+      <date>2003-02-22</date>
+      <notes>
+- The IMAP Procotol generic parser is now implemented.
+      </notes>
+      <state>beta</state>
+      <deps>
+        <dep type="pkg" rel="has">Net_Socket</dep>    
+        <dep type="pkg" rel="has">Auth_SASL</dep>    
+      </deps>
+    </release>
+  </changelog>
+</package>
