@@ -14,7 +14,7 @@ $imap= new  Net_IMAP($host,$port);
 
 
 //The the Protocol debug feature
-$imap->setDebug();
+//$imap->setDebug();
 //$imap->setUnparsedResponse(true);
 
 //$imap->cmdCapability();
