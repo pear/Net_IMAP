@@ -1,7 +1,11 @@
 <?
-include_once('../IMAP.php');
-//include_once('Net/IMAP.php');
+//include_once('../IMAP.php');
+include_once('Net/IMAP.php');
+
 error_reporting(E_ALL);
+
+
+
 $user="user";
 $passwd="password";
 $host="localhost";
@@ -21,8 +25,14 @@ $imap= new  Net_IMAP($host,$port);
 // Login to the IMAP Server Using plain passwords ($authMethod=false)
 // $authMethod can be true (dafault) , false or a string
 
-$authMethod=false;
+/*$authMethod=false;
 if ( PEAR::isError( $ret = $imap->login( $user , $passwd , $authMethod ) ) ) {
+    echo "Unable to login! reason:" . $ret->getMessage() . "\n";
+    exit();
+}
+*/
+
+if ( PEAR::isError( $ret = $imap->login( $user , $passwd  ) ) ) {
     echo "Unable to login! reason:" . $ret->getMessage() . "\n";
     exit();
 }
@@ -37,7 +47,8 @@ if ( PEAR::isError( $ret = $imap->login( $user , $passwd , $authMethod ) ) ) {
     Let's show the Mailbox  related methods
 ***
 *********************/
-$mailboxes=$imap->getMailboxes('');
+//$mailboxes=$imap->getMailboxes('');
+$mailboxes=$imap->getMailboxes('inbox');
 
 //print_r($mailboxes);
 //$mailboxes=0;
@@ -76,6 +87,7 @@ if( count($mailboxes) > 0 ){
         
         echo "|";
         // Align the output
+        //print_r($num_messages);
         for($i=strlen($num_messages) ; $i< 13 ; $i++)  echo ' ';
         echo $num_messages;
 
@@ -91,16 +103,35 @@ if( count($mailboxes) > 0 ){
 }
 
 
-echo "PITERROR|" . print_r( $imap->_socket->eof()) . "|\n";
+//echo "PITERROR|" . print_r( $imap->_socket->eof()) . "|\n";
 
 //echo $imap->getDebugDialog();
-exit();
+//exit();
 
 
 
 $folder_delim=$imap->getHierachyDelimiter();
 echo "Folder Delim:|$folder_delim|\n";
 $mailbox='Mail'.$folder_delim .'INBOX2';
+
+
+
+
+
+
+
+echo "Getting the summary of message 1\n";
+
+$aa=$imap->getSummary(1);
+//print_r($aa);
+
+
+$aaa=$imap->examineMailbox("inbox");
+//print_r($aaa);
+
+
+
+
 
 
 
@@ -155,7 +186,9 @@ $email.="test\r\n";
 
 
 
-//$imap->cmdAppend("inbox",$email);
+
+echo "APPEND\n";
+$imap->cmdAppend("inbox",$email);
 
 
 
@@ -165,6 +198,77 @@ $email.="test\r\n";
 
 
 
+$mailbox='inbox';
+
+echo "Now lets check the flags of messages in $mailbox\n";
+
+
+
+
+if ( !PEAR::isError( $num_messages = $imap->getNumberOfMessages( $mailbox  ) ) ){
+
+    
+
+    for($i=1; $i<=$num_messages;$i++) {
+    
+        print_r($imap->getFlags($i));
+        //echo "AAAA\n";
+    /*    
+        if ($imap->isSeen($i)) {
+                echo "message $i has been read before...<br>\n";
+                //$msg = $imap->getMsg($i);
+                #echo $msg;
+            }
+        if ($imap->isFlagged($i)) {
+                echo "message $i has been Flagged...<br>\n";
+                //$msg = $imap->getMsg($i);
+                #echo $msg;
+            }
+        if ($imap->isDeleted($i)) {
+                echo "message $i is marked as Deleted...<br>\n";
+                //$msg = $imap->getMsg($i);
+                #echo $msg;
+            }
+    */
+    }
+
+}else{
+    echo "Or $mailbox has no messages or there was an error!\n";
+}
+
+
+
+
+$imap->selectMailbox('inbox');
+
+$nummsg = $imap->getNumberOfMessages();
+
+
+
+for($i=1; $i<=$nummsg;$i++) {
+    if ($imap->isSeen($i)) {
+        echo "message $i has been read before...<br>\n";
+        //$msg = $imap->getMsg($i);
+        #echo $msg;
+	}
+   if ($imap->isFlagged($i)) {
+        echo "message $i has been Flagged...<br>\n";
+        //$msg = $imap->getMsg($i);
+        #echo $msg;
+	}
+   if ($imap->isDeleted($i)) {
+        echo "message $i is marked as Deleted...<br>\n";
+        //$msg = $imap->getMsg($i);
+        #echo $msg;
+	}
+
+    
+}
+
+
+
+
+/*
 
 echo "renaming mailbox INBOX2 to INBOX3 : <br>\n";
 $imap->renameMailbox('INBOX2', 'INBOX3');
@@ -183,7 +287,7 @@ echo "copying msg 1 INBOX to TESTING :<br>\n";
 $imap->copyMessages(1, 'TESTING');
 
 
-
+*/
 
 
 
@@ -207,11 +311,6 @@ echo "<pre>" . htmlspecialchars($imap->getBody(1)) . "</pre>\n";
 
 
 
-//* Get entire message
-echo "<h2>getMsg()</h2>\n";
-echo "<pre>" . htmlspecialchars($imap->getMsg(1)) . "</pre>\n";
-
-
 //* Get number of messages in maildrop
 echo "<h2>getNumMsg</h2>\n";
 echo "<pre>" . $imap->numMsg() . "</pre>\n";
@@ -219,7 +318,12 @@ echo "<pre>" . $imap->numMsg() . "</pre>\n";
 
 //* Get entire message
 echo "<h2>getMsg()</h2>\n";
-echo "<pre>" . htmlspecialchars($imap->getMsg(1)) . "</pre>\n";
+
+
+if(!PEAR::isError($msg=$imap->getMsg(1))){
+print_r($msg);
+    echo '<pre>' . htmlspecialchars($msg) . '</pre>\n';
+}
 
 
 //* Get listing details of the maildrop
@@ -253,7 +357,10 @@ echo "You have $nummsg in $mailbox folder\n";
 //echo "See header in message number 1: " . $imap->top(1) . '<br>';
 echo "See header in message number 1: " . htmlspecialchars($imap->getRawHeaders(1)) . '<br>\n';
 
-echo "Read message number 1: " . htmlspecialchars($imap->getMsg(1)) . '<br>\n';
+if(!PEAR::isError($msg=$imap->getMsg(1))){
+print_r($msg);
+    echo "Read message number 1: " . htmlspecialchars($msg) . '<br>\n';
+}
 
 
 

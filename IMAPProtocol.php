@@ -228,7 +228,7 @@ class Net_IMAPProtocol {
     function _send($data)
     {
         if($this->_socket->eof() ){
-            echo "ERRRORRRRRR!!!!\n";
+            return new PEAR_Error( 'Failed to write to socket: (connection lost!) ' );
         }
         if ( PEAR::isError( $error = $this->_socket->write( $data ) ) ) {
         
@@ -304,6 +304,8 @@ class Net_IMAPProtocol {
 
     
     
+    
+    
    
     /**
      * Get a response from the server with an optional string of commandID.
@@ -316,7 +318,6 @@ class Net_IMAPProtocol {
      *
      * @access  private
      */
-
     function _getRawResponse($commandId = '*')
     {
 
@@ -336,6 +337,8 @@ class Net_IMAPProtocol {
      
      
      
+     
+     
      /**
      * get the "returning of the unparsed response" feature status
      *
@@ -350,6 +353,10 @@ class Net_IMAPProtocol {
         return $this->_unParsedReturn;
     }
 
+    
+    
+    
+    
      
      /**
      * set the "returning of the unparsed response" feature on or off
@@ -366,6 +373,8 @@ class Net_IMAPProtocol {
     }
      
      
+    
+    
      
 
     /**
@@ -391,6 +400,9 @@ class Net_IMAPProtocol {
     }
 
 
+    
+    
+    
 
     /**
      * Attempt to authenticate to the iMAP server.
@@ -442,8 +454,10 @@ class Net_IMAPProtocol {
     
     
     
+   
     
     
+     
      /* Authenticates the user using the DIGEST-MD5 method.
      *
      * @param string The userid to authenticate as.
@@ -486,7 +500,6 @@ class Net_IMAPProtocol {
         if ( PEAR::isError( $args = $this->_recvLn() )) {
             return $args;
         }
-        
         /*
          * We don't use the protocol's third step because IMAP doesn't allow
          * subsequent authentication, so we just silently ignore it.
@@ -634,15 +647,17 @@ class Net_IMAPProtocol {
             $methods = $this->supportedAuthMethods;
         }
         
-            
-        foreach ( $methods as $method ) {
-            if ( in_array( $method , $this->_serverAuthMethods ) ) {
-                return $method;
+        if( ($methods != null) && ($this->_serverAuthMethods != null)){
+            foreach ( $methods as $method ) {
+                if ( in_array( $method , $this->_serverAuthMethods ) ) {
+                    return $method;
+                }
             }
+            $serverMethods=implode(',' ,$this->_serverAuthMethods);
+            return new PEAR_Error("$method NOT supported authentication method!. This IMAP server supports these methods: $serverMethods");
+        }else{
+            return new PEAR_Error("This IMAP server don't support any Auth methods");
         }
-
-        $serverMethods=implode(',' ,$this->_serverAuthMethods);
-        return new PEAR_Error("$method NOT supported authentication method!. This IMAP server supports these methods: $serverMethods");
     }
     
 
@@ -811,8 +826,19 @@ class Net_IMAPProtocol {
         if ( PEAR::isError( $error = $this->_putCMD( $cmdid , 'EXAMINE' ,$mailbox ) ) ) {
             return $error;
         }
+        
         $args = $this->_getRawResponse( $cmdid );
-        return $this->_retrGenericParser( $args , $cmdid );
+        
+        $ret=$this->_retrGenericParser( $args , $cmdid );
+        
+        
+        if(isset( $ret["PARSED"] ) ){
+            for($i=0;$i<count($ret["PARSED"]); $i++){ $command=$ret["PARSED"][$i]["EXT"];
+            //foreach($ret["PARSED"] as $command){            
+                    $parsed[key($command)]=$command[key($command)];
+            }
+        }
+        return array("PARSED"=>$parsed,"RESPONSE"=>$ret["RESPONSE"]);
     }
 
     
@@ -1043,10 +1069,12 @@ class Net_IMAPProtocol {
         $ret = $this->_retrGenericParser($args,$cmdid);
         
 
-        if(is_array( $ret["PARSED"] ) ){
-            foreach($ret["PARSED"] as $command){            
+        if(isset( $ret["PARSED"] ) ){
+            $parsed=$ret["PARSED"][0]["EXT"];
+/*            foreach($ret["PARSED"] as $command){            
                     $parsed[$command["COMMAND"]]=$command["EXT"];
             }
+*/      
             //fill the $this->_serverAuthMethods and $this->_serverSupportedCapabilities arrays
             foreach( $parsed["CAPABILITY"]["CAPABILITIES"] as $auth_method ){
                 if( strtoupper( substr( $auth_method , 0 ,5 ) ) == "AUTH=" )
@@ -1061,8 +1089,6 @@ class Net_IMAPProtocol {
             $unparsed["UNPARSED"]=$ret["UNPARSED"];
             $ret_aux=array_merge($ret_aux,$unparsed);
         }
-
-        
         return $ret_aux;
 
     }
@@ -1109,14 +1135,24 @@ class Net_IMAPProtocol {
         $args=$this->_getRawResponse($cmdid);
 
         $ret=$this->_retrGenericParser($args,$cmdid);
-        
-        if(is_array( $ret["PARSED"] ) ){
+
+        if(isset( $ret["PARSED"] ) ){
+            //$parsed=$ret["PARSED"][0]["EXT"];
             foreach($ret["PARSED"] as $command){            
-                    $parsed[$command["COMMAND"]]=$command["EXT"];
+                    $parsed[$command["COMMAND"]]=$command["EXT"][key($command["EXT"])];
             }
+
         }
         
-        $ret_aux=array("PARSED"=>$parsed,"RESPONSE"=>$ret["RESPONSE"]);        
+        
+        $ret_aux=array("RESPONSE"=>$ret["RESPONSE"]);        
+        if(isset($parsed)){
+            $parsed["PARSED"]=$parsed;
+            $ret_aux=array_merge($ret_aux,$parsed);
+        
+        }
+        
+
         if( $this->_unParsedReturn ){
             $unparsed["UNPARSED"]=$ret["UNPARSED"];
             $ret_aux=array_merge($ret_aux,$unparsed);
@@ -1197,36 +1233,37 @@ class Net_IMAPProtocol {
      * @access public
      * @since  1.0
      */
-    function cmdAppend($mailbox,$msg , $flags_list = '' ,$time = '')
+    function cmdAppend($mailbox, $msg , $flags_list = '' ,$time = '')
     {
         if(!$this->_connected){
             return new PEAR_Error('not connected!');
         }
-
+        
         $cmdid=$this->_getCmdId();
         $msg_size=strlen($msg);
 
 
-    // TODO:
-    // no me acuerdo que capability controla esta forma o la de abajo....
-    if( $this->hasCapability( "LITERAL+" ) == true ){
-        $param="\"$mailbox\"$flags_lists$time \{$msg_size+}\r\n$msg";
-        if (PEAR::isError($error = $this->_putCMD($cmdid , 'APPEND' , $param ) ) ) {
+        // TODO:
+        // Falta el codigo para que flags list y time hagan algo!!
+        if( $this->hasCapability( "LITERAL+" ) == true ){
+            $param=sprintf("\"%s\" %s%s{%s+}\r\n%s",$mailbox,$flags_list,$time,$msg_size,$msg);
+            if (PEAR::isError($error = $this->_putCMD($cmdid , 'APPEND' , $param ) ) ) {
+                return $error;
+            }
+        }else{
+            $param=sprintf("\"%s\" %s%s{%s}\r\n",$mailbox,$flags_list,$time,$msg_size);
+            //$param="\"$mailbox\"$flags_list$time \{$msg_size}\r\n";
+            if (PEAR::isError($error = $this->_putCMD($cmdid , 'APPEND' , $param ) ) ) {
             return $error;
-        }
-    }else{
-        $param="\"$mailbox\"$flags_lists$time \{$msg_size}\r\n";
-        if (PEAR::isError($error = $this->_putCMD($cmdid , 'APPEND' , $param ) ) ) {
-        return $error;
-        }
-        if (PEAR::isError($error = $this->_recvLn() ) ) {
-        return $error;
-        }
+            }
+            if (PEAR::isError($error = $this->_recvLn() ) ) {
+            return $error;
+            }
 
-        if (PEAR::isError($error = $this->_send( $msg ) ) ) {
-        return $error;
+            if (PEAR::isError($error = $this->_send( $msg ) ) ) {
+            return $error;
+            }
         }
-    }
 
 
         $args=$this->_getRawResponse($cmdid);
@@ -1284,26 +1321,23 @@ class Net_IMAPProtocol {
         $args=$this->_getRawResponse($cmdid);
         $ret=$this->_retrGenericParser($args,$cmdid);
         
-
         if(isset( $ret["PARSED"] ) ){
             foreach($ret["PARSED"] as $command){
                 if( strtoupper($command["COMMAND"]) == 'EXPUNGE' ){
                         $parsed[$command["COMMAND"]][]=$command["NRO"];
+                }else{
+                        $parsed[$command["COMMAND"]]=$command["NRO"];
                 }
             }
-            
-            if( isset($ret["PARSED"]["EXISTS"] ) ){
-                $status_arr["EXISTS"] = $ret["PARSED"]["EXISTS"];
-            }
-            if( isset($ret["PARSED"]["RECENT"] ) ){
-                $status_arr["RECENT"] = $ret["PARSED"]["RECENT"];
-            }
+
         }
         
+
+       
         $ret_aux=array("RESPONSE"=>$ret["RESPONSE"]);        
         if(isset($parsed)){
-            $parsed["PARSED"]=$parsed;
-            $ret_aux=array_merge($ret_aux,$parsed);
+            
+            $ret_aux=array_merge($ret_aux,array("PARSED"=>$parsed));
         
         }
         
@@ -1312,8 +1346,9 @@ class Net_IMAPProtocol {
             $ret_aux=array_merge($ret_aux,$unparsed);
         }
         
-        if(isset($status_arr) ){
-            $ret_aux=array_merge($ret_aux,$status_arr);
+        if(isset($ret["STATUS"]) ){
+            $status["STATUS"]=$ret["STATUS"];
+            $ret_aux=array_merge($ret_aux,$status);
         }
         
         return $ret_aux;
@@ -1352,13 +1387,9 @@ class Net_IMAPProtocol {
         }
         $args=$this->_getRawResponse($cmdid);
         $ret=$this->_retrGenericParser($args,$cmdid);
-        
-
-
+ 
         if(isset( $ret["PARSED"] ) ){
-            foreach($ret["PARSED"] as $command){            
-                    $parsed[$command["COMMAND"]]=$command["EXT"];
-            }
+            $parsed=$ret["PARSED"][0]["EXT"];
         }
         
         $ret_aux=array("PARSED"=>$parsed,"RESPONSE"=>$ret["RESPONSE"]);        
@@ -1366,7 +1397,6 @@ class Net_IMAPProtocol {
             $unparsed["UNPARSED"]=$ret["UNPARSED"];
             $ret_aux=array_merge($ret_aux,$unparsed);
         }
-
         return $ret_aux;
     }
 
@@ -1618,10 +1648,8 @@ class Net_IMAPProtocol {
         $args=$this->_getRawResponse($cmdid);
         $ret=$this->_retrGenericParser($args,$cmdid);
         
-        if(is_array( $ret["PARSED"] ) ){
-            foreach($ret["PARSED"] as $command){            
-                    $parsed[$command["COMMAND"]]=$command["EXT"];
-            }
+        if(isset( $ret["PARSED"] ) ){
+            $parsed=$ret["PARSED"][0]["EXT"];
         }
         
         
@@ -1719,10 +1747,8 @@ class Net_IMAPProtocol {
         $ret=$this->_retrGenericParser($str,$cmdid);
         
 
-        if(is_array( $ret["PARSED"] ) ){
-            foreach($ret["PARSED"] as $command){            
-                    $parsed[$command["COMMAND"]]=$command["EXT"];
-            }
+        if(isset( $ret["PARSED"] ) ){
+            $parsed=$ret["PARSED"][0]["EXT"];
         }
         
         $ret_aux=array("RESPONSE"=>$ret["RESPONSE"]);        
@@ -1765,14 +1791,13 @@ class Net_IMAPProtocol {
         $str=$this->_getRawResponse($cmdid);
         $ret=$this->_retrGenericParser($str,$cmdid);
         
-        
-        if(is_array( $ret["PARSED"] ) ){
-            foreach($ret["PARSED"] as $command){            
-                    $parsed[$command["COMMAND"]]=$command["EXT"];
-            }
+        $ret_aux=array("RESPONSE"=>$ret["RESPONSE"]);        
+        if(isset( $ret["PARSED"] ) ){
+            $parsed=$ret["PARSED"][0]["EXT"];
+            $ret_aux=array_merge($ret_aux,$parsed);
         }
         
-        $ret_aux=array("PARSED"=>$parsed,"RESPONSE"=>$ret["RESPONSE"]);        
+        
         if( $this->_unParsedReturn ){
             $unparsed["UNPARSED"]=$ret["UNPARSED"];
             $ret_aux=array_merge($ret_aux,$unparsed);
@@ -1937,19 +1962,19 @@ class Net_IMAPProtocol {
         $str=$this->_getRawResponse($cmdid);
         $ret=$this->_retrGenericParser($str,$cmdid);
         
-        if(is_array( $ret["PARSED"] ) ){
-            foreach($ret["PARSED"] as $command){            
-                    $parsed[$command["COMMAND"]]=$command["EXT"];
-            }
+        
+                
+        $ret_aux=array("RESPONSE"=>$ret["RESPONSE"]);        
+        if(isset( $ret["PARSED"] ) ){
+            $parsed=$ret["PARSED"][0]["EXT"];
+            $ret_aux=array_merge($ret_aux,$parsed);
         }
         
-        $ret_aux=array("PARSED"=>$parsed,"RESPONSE"=>$ret["RESPONSE"]);        
+        
         if( $this->_unParsedReturn ){
             $unparsed["UNPARSED"]=$ret["UNPARSED"];
             $ret_aux=array_merge($ret_aux,$unparsed);
         }
-        
-        
         return $ret_aux;
    }
 
@@ -1979,18 +2004,19 @@ class Net_IMAPProtocol {
         $ret = $this->_retrGenericParser($str,$cmdid);
         
         
-        if(is_array( $ret["PARSED"] ) ){
-            foreach($ret["PARSED"] as $command){            
-                    $parsed[$command["COMMAND"]]=$command["EXT"];
-            }
+        
+                
+        $ret_aux=array("RESPONSE"=>$ret["RESPONSE"]);        
+        if(isset( $ret["PARSED"] ) ){
+            $parsed=$ret["PARSED"][0]["EXT"];
+            $ret_aux=array_merge($ret_aux,$parsed);
         }
         
-        $ret_aux=array("PARSED"=>$parsed,"RESPONSE"=>$ret["RESPONSE"]);        
+        
         if( $this->_unParsedReturn ){
             $unparsed["UNPARSED"]=$ret["UNPARSED"];
             $ret_aux=array_merge($ret_aux,$unparsed);
         }
-        
         
         return $ret_aux;
     }
@@ -2026,13 +2052,16 @@ class Net_IMAPProtocol {
         $str = $this->_getRawResponse($cmdid);
         $ret = $this->_retrGenericParser($str,$cmdid);
         
-        if(is_array( $ret["PARSED"] ) ){
+        
+        $ret_aux=array("RESPONSE"=>$ret["RESPONSE"]);        
+        if(isset( $ret["PARSED"] ) ){
             foreach($ret["PARSED"] as $command){            
                     $parsed[$command["COMMAND"]]=$command["EXT"];
             }
+            $ret_aux=array_merge($ret_aux,$parsed);
         }
         
-        $ret_aux=array("PARSED"=>$parsed,"RESPONSE"=>$ret["RESPONSE"]);        
+        
         if( $this->_unParsedReturn ){
             $unparsed["UNPARSED"]=$ret["UNPARSED"];
             $ret_aux=array_merge($ret_aux,$unparsed);
@@ -2099,8 +2128,10 @@ class Net_IMAPProtocol {
         if( $this->_serverSupportedCapabilities == null ){
             $this->cmdCapability();
         }
-        if( in_array( $capability , $this->_serverSupportedCapabilities ) ){
-            return true;
+        if($this->_serverSupportedCapabilities != null ){
+            if( in_array( $capability , $this->_serverSupportedCapabilities ) ){
+                return true;
+            }
         }
         return false;
     }
@@ -2150,21 +2181,26 @@ class Net_IMAPProtocol {
     function getHierachyDelimiter()
     {
         if($this->_hierachyDelimiter == null ){
-            /* RFC2060 says that the command LIST "" "" means get the hierachy delimiter:
+            /* RFC2060 says: "the command LIST "" "" means get the hierachy delimiter:
                         An empty ("" string) mailbox name argument is a special request to
                 return the hierarchy delimiter and the root name of the name given
                 in the reference.  The value returned as the root MAY be null if
                 the reference is non-rooted or is null.  In all cases, the
                 hierarchy delimiter is returned.  This permits a client to get the
                 hierarchy delimiter even when no mailboxes by that name currently
-                exist.
+                exist."
             */
             $ret=$this->cmdList("", "");
-            print_r($ret);
-            $this->_hierachyDelimiter=@$ret["PARSED"][0]["EXT"]["HIERACHY_DELIMITER"];
-        
+
+            if(isset($ret["PARSED"][0]["EXT"]["LIST"]["HIERACHY_DELIMITER"]) ){
+                $this->_hierachyDelimiter=$ret["PARSED"][0]["EXT"]["LIST"]["HIERACHY_DELIMITER"];
+                return $this->_hierachyDelimiter;
+            }else{
+                return new PEAR_Error( 'the IMAP Server does not support HIERACHY_DELIMITER!' );
+            }
         }
         return $this->_hierachyDelimiter;
+        
     }
     
     
@@ -2185,9 +2221,9 @@ class Net_IMAPProtocol {
     * @since  1.0
     */
 
-    function _parseOneStringResponse(&$str)
+    function _parseOneStringResponse(&$str, $line,$file)
     {
-        $this->_parseSpace($str , __LINE__ , __FILE__ );
+        $this->_parseSpace($str , $line , $file );
         $size = $this->_getNextToken($str,$uid);
         return $uid;
     }
@@ -2211,6 +2247,7 @@ class Net_IMAPProtocol {
             $flags_arr[] = $params_arr[0][$i];
         }
         return $flags_arr;
+
     }
 
     
@@ -2323,7 +2360,8 @@ class Net_IMAPProtocol {
         
         // Get the email's Subject:
         $this->_getNextToken($str,$subject);
-        
+        //$subject=$this->decode($subject);
+                
         $this->_parseSpace($str , __LINE__ , __FILE__ );
         
         //FROM LIST;
@@ -2389,7 +2427,7 @@ class Net_IMAPProtocol {
     function _getAddressList(&$str)
     {
         $params_arr = $this->_arrayfy_content($str);
-        if( !is_array( $params_arr ) ){
+        if( !isset( $params_arr ) ){
             return $params_arr;
         }
         
@@ -2416,19 +2454,19 @@ class Net_IMAPProtocol {
     * @access private
     * @since  1.0
     */
-    function _getClosingBracesPos($str_line)
+    function _getClosingBracesPos($str_line, $startDelim ='{', $stopDelim = '}' )
     {
         $len = strlen( $str_line );
         $pos = 0;
 
-        if ( $str_line[$pos] != "{" ) {
-            $this->_prot_error("_getClosingParenthesisPos: must start with a '{' but is a '". $str_line[$pos] ."'!!!!\n" . 
+        if ( $str_line[$pos] != $startDelim ) {
+            $this->_prot_error("_getClosingParenthesisPos: must start with a '$startDelim' but is a '". $str_line[$pos] ."'!!!!\n" . 
                 "STR_LINE:$str_line\n" , __LINE__ , __FILE__ );
             return( $len );
         }
         for( $pos = 1 ; $pos < $len ; $pos++ ){
 
-            if ( $str_line[$pos] == "}" ) {
+            if ( $str_line[$pos] == $stopDelim ) {
                 break;
             } 
         }
@@ -2556,8 +2594,6 @@ var $aa;
             $content=$str;
             return $len;
         }
-        //$this->aa++;
-        //echo "AA" . $this->aa . "|STR:|$str|\n";
         switch( $str[0] ){
         case '{':
             if( ($posClosingBraces = $this->_getClosingBracesPos($str)) == false ){
@@ -2669,7 +2705,6 @@ var $aa;
             }
             break;
         }
-//        echo "COTNENT:$content_size\n";
         return $content_size;
     }
     
@@ -2719,7 +2754,8 @@ var $aa;
             $token = strtoupper( $token );
 
             if( ( $ret = $this->_retrParsedResponse( $str , $token ) ) != false ){
-                $struct_arr[$token] = $ret;
+                //$struct_arr[$token] = $ret;
+                $struct_arr=array_merge($struct_arr, $ret);
             }
             
             $parenthesis=$token;
@@ -2741,68 +2777,96 @@ var $aa;
     
         switch( $token ){
         case "RFC822.SIZE" :
-            return $this->_parseOneStringResponse( $str );
+            return array($token=>$this->_parseOneStringResponse( $str,__LINE__ , __FILE__ ));
             break;   
         case "RFC822.TEXT" :
-            return $this->_parseContentresponse( $str , $token );
+            return array($token=>$this->_parseContentresponse( $str , $token ));
             break;   
         case "RFC822" :
-            return $this->_parseContentresponse( $str , $token );
+            return array($token=>$this->_parseContentresponse( $str , $token ));
             break; 
         case "RFC822.HEADER" :
-            return $this->_parseContentresponse( $str , $token );
+            return array($token=>$this->_parseContentresponse( $str , $token ));
             break;   
         case "BODY.PEEK[HEADER]" :
-            return  $this->_parseContentresponse( $str , $token );
+            return  array($token=>$this->_parseContentresponse( $str , $token ));
             break;   
         case "BODY.PEEK[]" :
-            return  $this->_parseContentresponse( $str , $token );
+            return  array($token=>$this->_parseContentresponse( $str , $token ));
             break;   
         case "BODY[HEADER]" :
-            return $this->_parseContentresponse( $str , $token );
+            return array($token=>$this->_parseContentresponse( $str , $token ));
             break;   
         case "BODY[TEXT]" :
-            return $this->_parseContentresponse( $str , $token );
+            return array($token=>$this->_parseContentresponse( $str , $token ));
             break;   
         case "BODY[]" :
-            return $this->_parseContentresponse( $str , $token );
+            return array($token=>$this->_parseContentresponse( $str , $token ));
             break;                       
         case "FLAGS" :
-            return $this->_parseFLAGSresponse( $str );
+            return array($token=>$this->_parseFLAGSresponse( $str ));
             break;
+        case "PERMANENTFLAGS" :
+            return array($token=>$this->_parseFLAGSresponse( $str ));
+            break;
+            
         case "INTERNALDATE" :
-            return $this->_parseOneStringResponse( $str );
+            return array($token=>$this->_parseOneStringResponse( $str,__LINE__ , __FILE__ ));
             break;
         case "ENVELOPE" :
-            return $this->_parseENVELOPEresponse( $str );
+            return array($token=>$this->_parseENVELOPEresponse( $str ));
             break;
         case "EXPUNGE" :
             return false;
             break;
             
         case "UID" :
-            return $this->_parseOneStringResponse( $str );
-            break;   
-        case "BODY" :
-            return $this->_parseBodyResponse( $str , $token );
-            break;                       
-        case "BODYSTRUCTURE" :
-            return $this->_parseBodyResponse( $str . $token );
-            break;                                           
-        case "MESSAGES" :
-            return $this->_parseOneStringResponse( $str );
-            break;   
-        case "RECENT" :
-            return $this->_parseOneStringResponse( $str );
-            break;   
+            return array($token=>$this->_parseOneStringResponse( $str,__LINE__ , __FILE__ ));
+            break;
         case "UIDNEXT" :
-            return $this->_parseOneStringResponse( $str );
+            return array($token=>$this->_parseOneStringResponse( $str,__LINE__ , __FILE__ ));
             break;   
         case "UIDVALIDITY" :
-            return $this->_parseOneStringResponse( $str );
+            return array($token=>$this->_parseOneStringResponse( $str,__LINE__ , __FILE__ ));
+            break;
+        case "UNSEEN" :
+            return array($token=>$this->_parseOneStringResponse( $str,__LINE__ , __FILE__ ));
+            break;
+        case "BODY" :
+            return array($token=>$this->_parseBodyResponse( $str , $token ));
+            break;                       
+        case "BODYSTRUCTURE" :
+            return array($token=>$this->_parseBodyResponse( $str . $token ));
+            break;                                           
+        case "MESSAGES" :
+            return array($token=>$this->_parseOneStringResponse( $str,__LINE__ , __FILE__ ));
+            break;   
+        case "RECENT" :
+            if( $previousToken != null ){
+                $aux["RECENT"]=$previousToken;
+                return $aux;
+            }else{
+                return array($token=>$this->_parseOneStringResponse( $str,__LINE__ , __FILE__ ));
+            }
+            break;   
+            
+        case "UIDNEXT" :
+            return array($token=>$this->_parseOneStringResponse( $str,__LINE__ , __FILE__ ));
+            break;   
+        case "UIDVALIDITY" :
+            return array($token=>$this->_parseOneStringResponse( $str,__LINE__ , __FILE__ ));
             break;   
         case "UNSEEN" :
-            return $this->_parseOneStringResponse( $str );
+            return array($token=>$this->_parseOneStringResponse( $str,__LINE__ , __FILE__ ));
+            break;   
+        case "EXISTS" :
+            return array($token=>$previousToken);
+            break;   
+        case "READ-WRITE" :
+            return array($token=>$token);
+            break;   
+        case "READ-ONLY" :
+            return array($token=>$token);
             break;   
         case "QUOTA" :
             /*
@@ -2813,7 +2877,7 @@ var $aa;
                 S: A0004 OK Completed
             */
 
-            $mailbox = $this->_parseOneStringResponse( $str );
+            $mailbox = $this->_parseOneStringResponse( $str,__LINE__ , __FILE__ );
             $this->_parseSpace( $str , __LINE__ , __FILE__ );
             $this->_parseString( $str , '(' , __LINE__ , __FILE__ );
             $stor_command = $this->_parseString( $str , 'STORAGE' , __LINE__ , __FILE__ );
@@ -2821,7 +2885,7 @@ var $aa;
                     $this->_prot_error("bogus response!!!!" , __LINE__ , __FILE__ ); 
             }
             $this->_parseString( $str , ')' , __LINE__ , __FILE__ );
-            $ret = array( "MAILBOX"=>$mailbox , $stor_command=>$ext[$stor_command] );
+            $ret = array($token=>array( "MAILBOX"=>$mailbox , $stor_command=>$ext[$stor_command] ));
             return $ret;
             break;    
         case "QUOTAROOT" :
@@ -2832,19 +2896,24 @@ var $aa;
                 S: * QUOTA user.damian (STORAGE 1781460 4000000)
                 S: A0004 OK Completed
             */
-            $mailbox = $this->_parseOneStringResponse( $str );
+            $mailbox = $this->_parseOneStringResponse( $str,__LINE__ , __FILE__ );
             
             $str_line = rtrim( substr( $this->_getToEOL( $str , false ) , 0 ) );
 
-            $quotaroot = $this->_parseOneStringResponse( $str_line );
+            $quotaroot = $this->_parseOneStringResponse( $str_line,__LINE__ , __FILE__ );
             $ret = @array( "MAILBOX"=>$mailbox , $token=>$quotaroot );
-            return $ret;
+            return array($token=>$ret);
             break;                        
         case "STORAGE" :
-                $used = $this->_parseOneStringResponse( $str );
-                $qmax = $this->_parseOneStringResponse( $str );
-                return array("USED"=> $used, "QMAX" => $qmax);
+                $used = $this->_parseOneStringResponse( $str,__LINE__ , __FILE__ );
+                $qmax = $this->_parseOneStringResponse( $str,__LINE__ , __FILE__ );
+                return array($token=>array("USED"=> $used, "QMAX" => $qmax));
         break;
+        case "MESSAGE" :
+                $mused = $this->_parseOneStringResponse( $str,__LINE__ , __FILE__ );
+                $mmax = $this->_parseOneStringResponse( $str,__LINE__ , __FILE__ );
+                return array($token=>array("MUSED"=> $mused, "MMAX" => $mmax));
+        break;        
         case "FETCH" :
                 $this->_parseSpace( $str  ,__LINE__  ,__FILE__ );
                 // Get the parsed pathenthesis
@@ -2855,15 +2924,15 @@ var $aa;
                 $this->_parseSpace( $str , __LINE__ , __FILE__ );
                 $str_line = rtrim( substr( $this->_getToEOL( $str , false ) , 0 ) );
                 $struct_arr["CAPABILITIES"] = explode( ' ' , $str_line );
-                return $struct_arr;
+                return array($token=>$struct_arr);
             break;   
         case "STATUS" :
-                $mailbox = $this->_parseOneStringResponse( $str );
+                $mailbox = $this->_parseOneStringResponse( $str,__LINE__ , __FILE__ );
                 $this->_parseSpace( $str , __LINE__ , __FILE__ );
                 $ext = $this->_getEXTarray( $str );
                 $struct_arr["MAILBOX"] = $mailbox;
                 $struct_arr["ATTRIBUTES"] = $ext;
-                return $struct_arr;
+                return array($token=>$struct_arr);
             break;                      
         case "LIST" :
                 $this->_parseSpace( $str , __LINE__ , __FILE__ );            
@@ -2876,7 +2945,7 @@ var $aa;
                 $this->_getNextToken( $str , $mailbox_name );
 
                 $result_array = array( "NAME_ATTRIBUTES"=>$params_arr , "HIERACHY_DELIMITER"=>$hierarchydelim , "MAILBOX_NAME"=>$mailbox_name );
-                return $result_array;
+                return array($token=>$result_array);
             break;         
         case "LSUB" :
                 $this->_parseSpace( $str , __LINE__ , __FILE__ );            
@@ -2889,13 +2958,16 @@ var $aa;
                 $this->_getNextToken( $str , $mailbox_name );
 
                 $result_array = array( "NAME_ATTRIBUTES"=>$params_arr , "HIERACHY_DELIMITER"=>$hierarchydelim , "MAILBOX_NAME"=>$mailbox_name );
-                return $result_array;
+                return array($token=>$result_array);
             break;                      
                          
             case "SEARCH" :
                 $str_line = rtrim( substr( $this->_getToEOL( $str , false ) , 1) );
                 $struct_arr["SEARCH_LIST"] = explode( ' ' , $str_line );
-                return $struct_arr;
+                if(count($struct_arr["SEARCH_LIST"]) == 1 && $struct_arr["SEARCH_LIST"][0]==''){
+                    $struct_arr["SEARCH_LIST"]=null;
+                }
+                return array($token=>$struct_arr);
             break;   
             case "OK" :
                 /* TODO:
@@ -2904,7 +2976,16 @@ var $aa;
 
                 */
                 $str_line = rtrim( substr( $this->_getToEOL( $str , false ) , 1 ) );
-                $result_array[] = array( "COMMAND"=>$token , "EXT"=>$str_line );
+                if($str_line[0] == '[' ){
+                    $braceLen=$this->_getClosingBracesPos($str_line, '[', ']' );
+                    $str_aux='('. substr($str_line,1,$braceLen -1). ')';
+                    $ext_arr=$this->_getEXTarray($str_aux);
+                    //$ext_arr=array($token=>$this->_getEXTarray($str_aux));
+                }else{
+                    $ext_arr=$str_line;
+                    //$ext_arr=array($token=>$str_line);
+                }
+                $result_array =  $ext_arr;
                 return $result_array;
                 break;    
         case "NO" :
@@ -3082,27 +3163,14 @@ var $aa;
                 // I get the command
                 $this->_getNextToken( $str , $command );
                 
-                if($command == "EXISTS" || $command == "RECENT"  ){
-                    /*
-                     The EXISTS and RECENT responses are special,
-                     first appears the number and after that the command
-                     so we must take care of it
-                    */
-                    $result_array[$command] = $msg_nro;
-                }else{
-                    /* Call the parser return the array
-                        take care of bogus responses!
-                    */
-                    if( ( $ext_arr = $this->_retrParsedResponse( $str , $command, $msg_nro ) ) == false ){
-                    //  if this bogus response cis a FLAGS () or EXPUNGE response
-                    // the ignore it
-                        if( $command != 'FLAGS' && $command != 'EXPUNGE' ){
-                            $this->_prot_error("bogus response!!!!" , __LINE__ , __FILE__, false); 
-                        }
+                if( ( $ext_arr = $this->_retrParsedResponse( $str , $command, $msg_nro ) ) == false ){
+                //  if this bogus response cis a FLAGS () or EXPUNGE response
+                // the ignore it
+                    if( $command != 'FLAGS' && $command != 'EXPUNGE' ){
+                        $this->_prot_error("bogus response!!!!" , __LINE__ , __FILE__, false); 
                     }
-                    $result_array[] = array( "COMMAND"=>$command , "NRO"=>$msg_nro , "EXT"=>$ext_arr );
                 }
-                
+                $result_array[] = array( "COMMAND"=>$command , "NRO"=>$msg_nro , "EXT"=>$ext_arr );
             }else{
                 // OK the token is not a NUMBER so it MUST be a COMMAND
                 $command = $token;
@@ -3112,7 +3180,7 @@ var $aa;
                 */
                 
                 if( ( $ext_arr = $this->_retrParsedResponse( $str , $command ) ) == false ){
-                    $this->_prot_error( "bogus response!!!!" , __LINE__ , __FILE__ ); 
+                    $this->_prot_error( "bogus response!!!! (COMMAND:$command)" , __LINE__ , __FILE__ ); 
                 }
                 $result_array[] = array( "COMMAND"=>$command , "EXT"=>$ext_arr );
 
@@ -3146,9 +3214,11 @@ var $aa;
         
         
         $response["RESPONSE"]=array( "CODE"=>$cmd_status , "STR_CODE"=>$str_line , "CMDID"=>$cmdid );
-        $parsed["PARSED"]=$result_array;
-        $ret=array_merge($response,$parsed);
         
+        $ret=$response;
+        if( !empty($result_array)){
+            $ret=array_merge($ret,array("PARSED"=>$result_array) );
+        }
         
         if( $this->_unParsedReturn ){
             $unparsed["UNPARSED"]=$unparsed_str;
@@ -3164,6 +3234,8 @@ var $aa;
         return $ret;
 
 }
+
+
 
 
 

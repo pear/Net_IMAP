@@ -17,8 +17,8 @@
 // +----------------------------------------------------------------------+
 
 
-require_once '../IMAPProtocol.php';
-//require_once 'Net/IMAPProtocol.php';
+//require_once '../IMAPProtocol.php';
+require_once 'Net/IMAPProtocol.php';
 
 
 /**
@@ -105,17 +105,27 @@ class Net_IMAP extends Net_IMAPProtocol {
     function login($user, $pass, $useauthenticate = true)
     {
         if ( $useauthenticate ){
-            $method = is_string( $useauthenticate ) ? $useauthenticate : null;
-
-            if ( PEAR::isError( $ret = $this->cmdAuthenticate( $user , $pass , $method  ) ) ) {
-                return $ret;
-            }
+            //$useauthenticate is a string if the user hardcodes an AUTHMethod
+            // (the user calls $imap->login("user","password","CRAM-MD5"); for example!
             
+            $method = is_string( $useauthenticate ) ? $useauthenticate : null;
+            
+            //Try the selected Auth method
+            if ( PEAR::isError( $ret = $this->cmdAuthenticate( $user , $pass , $method  ) ) ) {
+                    if($this->_serverAuthMethods ==null ){
+                    // The server does not have any auth method, so I try LOGIN
+                        if ( PEAR::isError( $ret = $this->cmdLogin( $user, $pass ) ) ) {
+                            return $ret;
+                        }
+                    }else{
+                        return $ret;
+                    }
+            }
             if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
                 return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
             }
         }else{
-        
+            //The user request "PLAIN"  auth, we use the login command
             if ( PEAR::isError( $ret = $this->cmdLogin( $user, $pass ) ) ) {
                 return $ret;
             }
@@ -123,12 +133,15 @@ class Net_IMAP extends Net_IMAPProtocol {
                 return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
             }
         }
+        //Select INBOX
         if ( PEAR::isError( $ret=$this->cmdSelect( $this->getCurrentMailbox() ) ) ) {
             return $ret;
         }
+        
         if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
             return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
         }
+        
         return true;
     }
     
@@ -188,10 +201,26 @@ class Net_IMAP extends Net_IMAPProtocol {
     
     
     
+        
     
-    
-    
-  
+     /*
+    * Checks  the mailbox $mailbox
+    * 
+    *
+    * @return bool Success/Pear_Error Failure
+    */
+    function examineMailbox($mailbox)
+    {
+        $ret=$this->cmdExamine($mailbox);
+        if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
+            return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
+        }
+        
+        //$ret_aux["EXISTS"]=$ret["PARSED"]["EXISTS"];
+        //$ret_aux["RECENT"]=$ret["PARSED"]["RECENT"];
+        return $ret;
+    }
+
     
     
     
@@ -260,7 +289,13 @@ class Net_IMAP extends Net_IMAPProtocol {
     
     function getMessagesList($msg_id = null)
     {
-        $ret=$this->cmdFetch("1:*","(RFC822.SIZE UID)");
+        if( $msg_id != null){
+            $message_set=$msg_id;
+        }else{
+            $message_set="1:*";
+        }
+    
+        $ret=$this->cmdFetch($message_set,"(RFC822.SIZE UID)");
         if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
             return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
         }
@@ -271,6 +306,38 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
     
     
+    
+    
+    
+    
+    
+    
+    
+    
+    function getSummary($msg_id = null)
+    {
+    
+        
+        if( $msg_id != null){
+            if(is_array($msg_id)){
+                $message_set=$this->_getSearchListFromArray($msg_id);
+            }else{
+                $message_set=$msg_id;
+            }
+        }else{
+            $message_set="1:*";
+        }
+        $ret=$this->cmdFetch($message_set,"(RFC822.SIZE UID FLAGS ENVELOPE INTERNALDATE)");
+        if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
+            return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
+        }
+/*        foreach($ret["PARSED"] as $msg){
+            $ret_aux[]=array("msg_id"=>$msg["NRO"],"size" => $msg["EXT"]["RFC822.SIZE"],"uidl"=> $msg["EXT"]["UID"]);
+        }
+        return $ret_aux;        
+        */
+        return $ret;        
+    }
     
     
     
@@ -301,26 +368,48 @@ class Net_IMAP extends Net_IMAPProtocol {
     
     
     
+    
     /*
     * Returns the entire message with given message number.
     *
     * @param  $msg_id Message number
     * @return mixed   Either entire message or false on error
     */
-    function getMessages($msg_id)
+    function getMessages($msg_id = null, $indexIsMessageNumber=true)
     {
         //$resp=$this->cmdFetch($msg_id,"(BODY[TEXT] BODY[HEADER])");
-        $ret=$this->cmdFetch($msg_id,"RFC822");
+        if( $msg_id != null){
+            if(is_array($msg_id)){
+                $message_set=$this->_getSearchListFromArray($msg_id);
+            }else{
+                $message_set=$msg_id;
+            }
+        }else{
+            $message_set="1:*";
+        }
+
+        $ret=$this->cmdFetch($message_set,"RFC822");
         if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
             return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
         }
-
-        //$ret=$resp["PARSED"][0]["EXT"]["BODY[HEADER]"]["CONTENT"] . $resp["PARSED"][0]["EXT"]["BODY[TEXT]"]["CONTENT"];
-        $ret=$ret["PARSED"][0]["EXT"]["RFC822"]["CONTENT"];
-        return $ret;
+        if(isset($ret["PARSED"])){
+            foreach($ret["PARSED"] as $msg){
+                if(isset($msg["EXT"]["RFC822"]["CONTENT"])){
+                    if($indexIsMessageNumber){
+                        $ret_aux[$msg["NRO"]]=$msg["EXT"]["RFC822"]["CONTENT"];
+                    }else{
+                        $ret_aux[]=$msg["EXT"]["RFC822"]["CONTENT"];
+                    }
+        }
+            }
+            return $ret_aux;
+       }
+       return array();
     }
 
 
+    
+    
     
     
     
@@ -342,15 +431,16 @@ class Net_IMAP extends Net_IMAPProtocol {
         if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
             return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
         }
-        if( !is_numeric( $ret["PARSED"]["STATUS"]["ATTRIBUTES"]["MESSAGES"] ) ){
-            // if this array does not exists means that there is no messages in the 
-            // mailbox
-            return 0;
-        }else{
-            return $ret["PARSED"]["STATUS"]["ATTRIBUTES"]["MESSAGES"];
+        if( isset($ret["PARSED"]["STATUS"]["ATTRIBUTES"]["MESSAGES"] ) ){
+            if( !is_numeric( $ret["PARSED"]["STATUS"]["ATTRIBUTES"]["MESSAGES"] ) ){
+                // if this array does not exists means that there is no messages in the mailbox
+                return 0;
+            }else{
+                return $ret["PARSED"]["STATUS"]["ATTRIBUTES"]["MESSAGES"];
+            }
+
         }
-        
-        return $ret;
+        return 0;
     }
     
     
@@ -385,7 +475,7 @@ class Net_IMAP extends Net_IMAPProtocol {
         if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
                 // Restore the default mailbox if it was changed
                 if ( $mailbox != '' && $mailbox != $this->getCurrentMailbox() ){
-                    if ( PEAR::isError( $ret = $this->selectMailbox( $mailbox ) ) ) {
+                    if ( PEAR::isError( $ret = $this->selectMailbox( $mailbox_aux ) ) ) {
                         return $ret;
                     }
                 }
@@ -394,8 +484,16 @@ class Net_IMAP extends Net_IMAPProtocol {
         }
 
         $sum=0;
+        
+        if(!isset($ret["PARSED"]) ){
+            // if the server does not return a "PARSED"  part
+            // we think that it does not suppoprt select or has no messages in it.
+            return 0;
+        }
         foreach($ret["PARSED"] as $msgSize){
-            $sum+= $msgSize["EXT"]["RFC822.SIZE"];
+            if( isset($msgSize["EXT"]["RFC822.SIZE"]) ){
+                $sum+= $msgSize["EXT"]["RFC822.SIZE"];
+            }
         }
 
         if ( $mailbox != '' && $mailbox != $this->getCurrentMailbox() ){
@@ -428,7 +526,7 @@ class Net_IMAP extends Net_IMAPProtocol {
     * @param  $msg_id Message to delete
     * @return bool Success/Failure
     */
-    function deleteMessages($msg_id)
+    function deleteMessages($msg_id = null)
     {
         /* As said in RFC2060...
         C: A003 STORE 2:4 +FLAGS (\Deleted)
@@ -437,9 +535,22 @@ class Net_IMAP extends Net_IMAPProtocol {
                 S: * 4 FETCH FLAGS (\Deleted \Flagged \Seen)
                 S: A003 OK STORE completed
         */
+        //Called without parammeters deletes all the messages in the mailbox
+        // You can also provide an array of numbers to delete those emails
+        if( $msg_id != null){
+            if(is_array($msg_id)){
+                $message_set=$this->_getSearchListFromArray($msg_id);
+            }else{
+                $message_set=$msg_id;
+            }
+        }else{
+            $message_set="1:*";
+        }
+
+        
         $dataitem="+FLAGS.SILENT";
         $value="\Deleted";
-        $ret=$this->cmdStore($msg_id,$dataitem,$value);
+        $ret=$this->cmdStore($message_set,$dataitem,$value);
         if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
             return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
         }
@@ -472,10 +583,18 @@ class Net_IMAP extends Net_IMAPProtocol {
         if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
             return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
         }
-        if( !is_null( $ret ) ){
-            //foreach( $ret["PARSED"] as $mbox ){
-            for($i=0;$i<count($ret["PARSED"]) ; $i++){ $mbox=$ret["PARSED"][$i];
-                $ret_aux[]=$mbox["EXT"]["MAILBOX_NAME"];
+        
+        $ret_aux=array();
+        if( isset($ret["PARSED"]) ){
+            foreach( $ret["PARSED"] as $mbox ){
+            //for($i=0;$i<count($ret["PARSED"]) ; $i++){ $mbox=$ret["PARSED"][$i];
+            //If the folder has the \NoSelect atribute we don't put in the list 
+            // it solves a bug in wu-imap that crash the IMAP server if we select that mailbox
+                if( isset($mbox["EXT"]["LIST"]["NAME_ATTRIBUTES"]) ){
+                    if( !in_array('\NoSelect',$mbox["EXT"]["LIST"]["NAME_ATTRIBUTES"]) ){
+                        $ret_aux[]=$mbox["EXT"]["LIST"]["MAILBOX_NAME"];
+                    }
+                }
             }
         }
         return $ret_aux;
@@ -502,6 +621,11 @@ class Net_IMAP extends Net_IMAPProtocol {
     
     
     
+    
+    
+    
+    
+    
     function createMailbox($mailbox)
     {
         $ret=$this->cmdCreate($mailbox);
@@ -510,6 +634,10 @@ class Net_IMAP extends Net_IMAPProtocol {
         }
         return true;
     }
+    
+    
+    
+    
     
     
     
@@ -530,6 +658,10 @@ class Net_IMAP extends Net_IMAPProtocol {
     
     
     
+    
+    
+    
+    
     function renameMailbox($oldmailbox, $newmailbox)
     {
         $ret=$this->cmdRename($oldmailbox,$newmailbox);
@@ -539,7 +671,46 @@ class Net_IMAP extends Net_IMAPProtocol {
         return true;
     }
     
+
     
+    
+    
+    
+    function subscribeMailbox($mailbox)
+    {
+        $ret=$this->cmdSubscribe($mailbox);
+        if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
+            return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
+        }
+        return true;
+    }
+    
+    
+
+    
+    
+    
+    function unsubscribeMailbox($mailbox)
+    {
+        $ret=$this->cmdUnsubscribe($mailbox);
+        if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
+            return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
+        }
+        return true;
+    }
+    
+    
+    
+    
+    
+    function listsubscribedMailboxes($mailbox_base, $mailbox_name)
+    {
+        $ret=$this->cmdLsub($mailbox_base, $mailbox_name);
+        if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
+            return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
+        }
+        return true;
+    }
     
     
     
@@ -560,14 +731,31 @@ class Net_IMAP extends Net_IMAPProtocol {
     
     
     
+    
+    
+    
+    
+    /******************************************************************
+    **                                                               **
+    **           FLAGS METHODS                                       **
+    **                                                               **
+    ******************************************************************/
+    
+    
+    
     function getFlags($message_set)
     {
         $ret=$this->cmdFetch($message_set,"FLAGS");
         if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
             return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
         }
-        foreach($ret["PARSED"] as $msg_flags){
-            $flags[]=$msg_flags["EXT"]["FLAGS"];
+        $flags=array();
+        if(isset($ret["PARSED"])){
+            foreach($ret["PARSED"] as $msg_flags){
+                if(isset($msg_flags["EXT"]["FLAGS"])){
+                    $flags[]=$msg_flags["EXT"]["FLAGS"];
+                }
+            }
         }
         return $flags;
     }
@@ -582,9 +770,11 @@ class Net_IMAP extends Net_IMAPProtocol {
         if (PEAR::isError($resp=$this->getFlags($message_nro))) {
             return $resp;
         }
-        if(is_array($resp[0])){
-            if(in_array("\\Seen" ,$resp[0]))
-                return true;
+        if(isset($resp[0]) ){
+            if(is_array($resp[0])){
+                if(in_array("\\Seen" ,$resp[0]))
+                    return true;
+            }
         }
         return false;        
     }
@@ -600,9 +790,11 @@ class Net_IMAP extends Net_IMAPProtocol {
         if (PEAR::isError($resp=$this->getFlags($message_nro))) {
             return $resp;
         }
-        if(is_array($resp[0])){
-            if(in_array("\\Answered" ,$resp[0]))
-                return true;
+        if(isset($resp[0]) ){        
+            if(is_array($resp[0])){
+                if(in_array("\\Answered" ,$resp[0]))
+                    return true;
+            }
         }
         return false;        
     }
@@ -617,9 +809,11 @@ class Net_IMAP extends Net_IMAPProtocol {
         if ( PEAR::isError($resp=$this->getFlags( $message_nro ) ) ) {
             return $resp;
         }
-        if( is_array( $resp[0] ) ){
-            if( in_array( "\\Flagged" , $resp[0] ) )
-                return true;
+        if(isset($resp[0]) ){        
+            if( is_array( $resp[0] ) ){
+                if( in_array( "\\Flagged" , $resp[0] ) )
+                    return true;
+            }
         }
         return false;        
     }
@@ -635,9 +829,11 @@ class Net_IMAP extends Net_IMAPProtocol {
         if ( PEAR::isError($resp = $this->getFlags( $message_nro ) ) ) {
             return $resp;
         }
-        if( is_array( $resp[0] ) ){
-            if( in_array("\\Draft" ,$resp[0] ) )
-                return true;
+        if(isset($resp[0]) ){        
+            if( is_array( $resp[0] ) ){
+                if( in_array("\\Draft" ,$resp[0] ) )
+                    return true;
+            }
         }
         return false;        
     }
@@ -655,12 +851,21 @@ class Net_IMAP extends Net_IMAPProtocol {
         if ( PEAR::isError( $resp = $this->getFlags( $message_nro ) ) ) {
             return $resp;
         }
-        if( is_array( $resp[0] ) ){
-            if( in_array( "\\Deleted" , $resp[0] ) )
-                return true;
+        if(isset($resp[0]) ){        
+            if( is_array( $resp[0] ) ){
+                if( in_array( "\\Deleted" , $resp[0] ) )
+                    return true;
+            }
         }
         return false;        
     }
+    
+    
+    
+    
+
+    
+    
     
     
     
@@ -669,8 +874,15 @@ class Net_IMAP extends Net_IMAPProtocol {
     
     
         
-    function appendMessage($mailbox, $rfc_message)
+    
+    
+        
+    function appendMessage($rfc_message, $mailbox = null )
     {
+    
+        if($mailbox == null){
+            $mailbox = $this->getCurrentMailbox();        
+        }
         $ret=$this->cmdAppend($mailbox,$rfc_message);
         if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
             return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
@@ -705,6 +917,37 @@ class Net_IMAP extends Net_IMAPProtocol {
     
     
     
+    /*
+    * search function. Sends the SEARCH command
+    * 
+    *
+    * @return bool Success/Failure
+    */
+    function search($search_list)
+    {
+        $ret = $this->cmdSearch($search_list);
+        if( strtoupper( $ret["RESPONSE"]["CODE"]) != "OK" ){
+            return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
+        }
+        
+        return $ret["PARSED"]["SEARCH"]["SEARCH_LIST"];
+    }
+
+   
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     /*****************************************************
@@ -723,7 +966,7 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
     
     
-    function numMsg($mailbox){
+    function numMsg($mailbox= null){
         return $this->getNumberOfMessages($mailbox);    
     }
     
@@ -737,7 +980,14 @@ class Net_IMAP extends Net_IMAPProtocol {
     */
     function getMsg($msg_id)
     {
-        return $this->getMessages($msg_id);
+        $ret=$this->getMessages($msg_id,false);
+        // false means that getMessages() must not use the msg number as array key
+        if(isset($ret[0])){
+            return $ret[0];
+        }else{
+            return $ret;
+        }
+        
     }
     
     
@@ -753,5 +1003,29 @@ class Net_IMAP extends Net_IMAPProtocol {
     
     
      
+    /*
+    *   Transform an array to a list to be used in the cmdFetch method
+    *
+    */    
+    function _getSearchListFromArray($arr){
+
+        $txt=implode(',' , $arr);
+        return $txt;
+    }
+
+
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 }
 ?>
