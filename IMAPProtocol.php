@@ -2325,9 +2325,9 @@ class Net_IMAPProtocol {
             break;
         case "BODY" :
             return array($token=>$this->_parseBodyResponse( $str , $token ));
-            break;                       
+            break;
         case "BODYSTRUCTURE" :
-            return array($token=>$this->_parseBodyResponse( $str . $token ));
+            return array($token=>$this->_parseBodyResponse( $str , $token ));
             break;                                           
         case "MESSAGES" :
             return array($token=>$this->_parseOneStringResponse( $str,__LINE__ , __FILE__ ));
@@ -2688,7 +2688,7 @@ class Net_IMAPProtocol {
                 */
                 
                 if( ( $ext_arr = $this->_retrParsedResponse( $str , $command ) ) == false ){
-                    $this->_prot_error( "bogus response!!!! (COMMAND:$command)" , __LINE__ , __FILE__ ); 
+                    $this->_prot_error( "bogus response!!!! (COMMAND:$command)" , __LINE__ , __FILE__ );
                 }
                 $result_array[] = array( "COMMAND"=>$command , "EXT"=>$ext_arr );
 

@@ -52,8 +52,8 @@ $a= new  Net_IMAPProtocol();
 
 $aaa=$a->cmdConnect($host,$port);
 
-$aaa=$a->cmdAuthenticate($user,$passwd);
-//$aaa=$a->cmdAuthenticate($user,$passwd, "CRAM-MD5");
+//$aaa=$a->cmdAuthenticate($user,$passwd);
+$aaa=$a->cmdAuthenticate($user,$passwd, "CRAM-MD5");
 //$aaa=$a->cmdLogin($user,$passwd);
 //$aaa=$a->login($user,$passwd);
 
