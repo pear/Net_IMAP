@@ -42,31 +42,63 @@ $host="localhost";
 $port="143";
 
 
-require_once("../passwords.php");
+//you can create a file called passwords.php and store your $user,$pass,$host and $port values in it
+// or you can modify this script
+@require_once("../passwords.php");
 
 $a= new  Net_IMAPProtocol();
 
-//$a->setDebug(true);
+$a->setDebug(true);
 //$a->setUnparsedResponse(true);
 //$a->setUnparsedResponse(false);
 
 $aaa=$a->cmdConnect($host,$port);
 
+
+//Choose your auth method...
 //$aaa=$a->cmdAuthenticate($user,$passwd);
-$aaa=$a->cmdAuthenticate($user,$passwd, "CRAM-MD5");
-//$aaa=$a->cmdLogin($user,$passwd);
+//$aaa=$a->cmdAuthenticate($user,$passwd, "CRAM-MD5");
+$aaa=$a->cmdLogin($user,$passwd);
 //$aaa=$a->login($user,$passwd);
+
 
 //$aaa=$a->cmdSelect("user.damian");
 $aaa=$a->cmdSelect("inbox");
 
 
+
+$str="inbox.peteáá";
+
+//$str="inbox.inbox3aaa &4eE-";
+//$str="inbox.&AOEA4QDh-";
+
+echo "Method cmdCreate()\n";
+print_r($aaa=$a->cmdCreate($str));
+
+
+echo "Method cmdList()\n";
+print_r($aaa=$a->cmdList("","*"));
+
+
+
+
 //Returns the Auth Methods the IMAP server Has
 //print_r($aaa=$a->getServerAuthMethods());
+//print_r($aaa=$a->cmdFetch("4","(BODY[1.1])"));
+//print_r($aaa=$a->cmdFetch("4","(BODY[1])"));
+print_r($aaa=$a->cmdFetch("4","(RFC822.TEXT)"));
+
+
+
 
 
 print_r($aaa=$a->cmdFetch("1","(BODY[HEADER] BODY[TEXT])"));
 print_r($aaa=$a->cmdFetch("1","BODY[HEADER]"));
+
+
+
+
+
 print_r($aaa=$a->cmdFetch("15","FULL"));
 print_r($aaa=$a->cmdFetch("1:3","(FLAGS RFC822.SIZE UID ENVELOPE INTERNALDATE)"));
 
@@ -209,6 +241,22 @@ print_r($aaa=$a->cmdStore("1:2","+FLAGS","\Deleted"));
 
 echo "Method cmdExpunge()\n";
 print_r($a->cmdExpunge());
+
+
+echo "Check if the server has ANNOTATEMORE Support\n";
+if( $a->hasAnnotateMoreSupport() ){
+    echo "Yes the server has ANNOTATEMORE Support\n";
+    //print_r( $a->cmdGetAnnotation("inbox" , array("test"), "algo") );
+
+    print_r( $a->cmdSetAnnotation("INBOX" , "/comment",array("value.priv"=>"My comment" ) ) );
+    print_r( $a->cmdGetAnnotation("INBOX" , "/comment","value.priv" ) );
+}
+else{
+    echo "The server has NOT ANNOTATEMORE Support\n";
+
+}
+
+
 
 //print_r($aaa);
 $aaa=$a->cmdLogout();

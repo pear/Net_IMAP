@@ -18,7 +18,7 @@
 
 
 /*
-This sample shows the use of the IMAPProtocol methods
+This sample shows the use of the IMAP methods
 this is only useful for testing and to high level IMAP access example use
 */
 
@@ -32,7 +32,12 @@ $passwd="password";
 $host="localhost";
 $port="143";
 
-require_once("../passwords.php");
+
+
+//you can create a file called passwords.php and store your $user,$pass,$host and $port values in it
+// or you can modify this script
+@require_once("../passwords.php");
+
 
 $imap= new  Net_IMAP($host,$port);
 //The the Protocol debug feature

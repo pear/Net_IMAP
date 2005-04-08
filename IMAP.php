@@ -39,20 +39,16 @@ class Net_IMAP extends Net_IMAPProtocol {
      * @param int The port to connect to.
      * @param string The value to give when sending EHLO or HELO.
      */
-     
+
     function Net_IMAP($host = 'localhost', $port = 143)
     {
         $this->Net_IMAPProtocol();
-        
-        $ret = $this->cmdConnect( $host , $port );
-        if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
-            return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
-        }
+        $ret = $this->connect( $host , $port );
     }
-    
-    
-    
-    
+
+
+
+
 
 
      /**
@@ -70,21 +66,32 @@ class Net_IMAP extends Net_IMAPProtocol {
     function connect($host, $port)
     {
         $ret=$this->cmdConnect($host,$port);
-        if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
-            return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
+        if($ret === true ){
+            return $ret;
+        }
+        if(empty($ret)){
+            return new PEAR_Error("Unexpected response on connection");
+        }
+        if(PEAR::isError($ret) ){
+            return $ret;
+        }
+        if(isset(    $ret["RESPONSE"]["CODE"] ) ){
+            if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
+                return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
+            }
         }
         return $ret;
     }
 
-   
-    
 
-    
-    
 
-    
-     
-    
+
+
+
+
+
+
+
     /**
      * Attempt to authenticate to the IMAP server.
      * @param string $user The userid to authenticate as.
@@ -108,7 +115,7 @@ class Net_IMAP extends Net_IMAPProtocol {
             // (the user calls $imap->login("user","password","CRAM-MD5"); for example!
 
             $method = is_string( $useauthenticate ) ? $useauthenticate : null;
-            
+
             //Try the selected Auth method
             if ( PEAR::isError( $ret = $this->cmdAuthenticate( $user , $pass , $method  ) ) ) {
                 // Verify the methods that we have in common with the server
@@ -150,8 +157,8 @@ class Net_IMAP extends Net_IMAPProtocol {
         }
         return true;
     }
-    
-    
+
+
 
 
     /*
@@ -175,12 +182,12 @@ class Net_IMAP extends Net_IMAPProtocol {
         }
         return true;
     }
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
 
      /*
     * Changes  the default/current mailbox th $mailbox
@@ -197,12 +204,12 @@ class Net_IMAP extends Net_IMAPProtocol {
         return true;
     }
 
-    
-    
 
-    
-        
-    
+
+
+
+
+
      /*
     * Checks  the mailbox $mailbox
     *
@@ -215,7 +222,7 @@ class Net_IMAP extends Net_IMAPProtocol {
         if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
             return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
         }
-        
+
         //$ret_aux["EXISTS"]=$ret["PARSED"]["EXISTS"];
         //$ret_aux["RECENT"]=$ret["PARSED"]["RECENT"];
         return $ret;
@@ -223,11 +230,11 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-    
 
-    
 
-    
+
+
+
     /*
     * Returns the raw headers of the specified message.
     *
@@ -241,7 +248,7 @@ class Net_IMAP extends Net_IMAPProtocol {
             return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
         }
         $ret=$ret["PARSED"][0]["EXT"]["BODY[HEADER]"]["CONTENT"];
-        return $ret;    
+        return $ret;
     }
 
 
@@ -258,9 +265,9 @@ class Net_IMAP extends Net_IMAPProtocol {
     * @return mixed   Either array of headers or false on error
     */
     function getParsedHeaders($msg_id)
-    {       
+    {
             $ret=$this->getRawHeaders($msg_id);
-            
+
             $raw_headers = rtrim($ret);
             $raw_headers = preg_replace("/\r\n[ \t]+/", ' ', $raw_headers); // Unfold headers
             $raw_headers = explode("\r\n", $raw_headers);
@@ -282,7 +289,7 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-    
+
     /*
     * Returns an array containing the message ID, the size and the UID
     * of each message selected.
@@ -311,18 +318,18 @@ class Net_IMAP extends Net_IMAPProtocol {
         foreach($ret["PARSED"] as $msg){
             $ret_aux[]=array("msg_id"=>$msg["NRO"],"size" => $msg["EXT"]["RFC822.SIZE"],"uidl"=> $msg["EXT"]["UID"]);
         }
-        return $ret_aux;        
+        return $ret_aux;
     }
-    
-    
-
-    
-
-    
 
 
-    
-    
+
+
+
+
+
+
+
+
     function getSummary($msg_id = null)
     {
        if( $msg_id != null){
@@ -427,10 +434,10 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-    
-    
-    
-    
+
+
+
+
 
 
 
@@ -564,7 +571,7 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
-    
+
 
 
 
@@ -575,7 +582,7 @@ class Net_IMAP extends Net_IMAPProtocol {
     * Returns the sum of all the sizes of messages in $mailbox
     *           WARNING!!!  The method's performance is not good
     *                       if you have a lot of messages in the mailbox
-    *                       Use with care!                
+    *                       Use with care!
     * @return mixed Either size of maildrop or false on error
     */
     function getMailboxSize($mailbox = '')
@@ -602,7 +609,7 @@ class Net_IMAP extends Net_IMAPProtocol {
         }
 
         $sum=0;
-        
+
         if(!isset($ret["PARSED"]) ){
             // if the server does not return a "PARSED"  part
             // we think that it does not suppoprt select or has no messages in it.
@@ -621,22 +628,22 @@ class Net_IMAP extends Net_IMAPProtocol {
             }
         }
 
-        return $sum;    
+        return $sum;
     }
-    
 
-    
-    
 
-    
-    
 
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
     /*
     * Marks a message for deletion. Only will be deleted if the
     * disconnect() method is called with auto-expunge on true or expunge()
@@ -666,7 +673,7 @@ class Net_IMAP extends Net_IMAPProtocol {
             $message_set="1:*";
         }
 
-        
+
         $dataitem="+FLAGS.SILENT";
         $value="\Deleted";
         $ret=$this->cmdStore($message_set,$dataitem,$value);
@@ -677,8 +684,8 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
-    
-    
+
+
 
 
 
@@ -1174,9 +1181,9 @@ class Net_IMAP extends Net_IMAPProtocol {
         }
         return $flags;
     }
-    
-    
-    
+
+
+
 
    /**
     * check the Seen flag
@@ -1208,8 +1215,8 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
-    
-    
+
+
 
    /**
     * check the flagged flag
@@ -1224,9 +1231,9 @@ class Net_IMAP extends Net_IMAPProtocol {
         return $this->hasFlag( $message_nro, "\\Flagged" );
     }
 
-    
-    
-    
+
+
+
 
 
    /**
@@ -1242,11 +1249,11 @@ class Net_IMAP extends Net_IMAPProtocol {
         return $this->hasFlag( $message_nro, "\\Draft" );
     }
 
-    
 
 
 
-    
+
+
 
    /**
     * check the Deleted flag
@@ -1310,7 +1317,7 @@ class Net_IMAP extends Net_IMAPProtocol {
         return true;
     }
 
-   
+
 
 
 
@@ -1336,7 +1343,7 @@ class Net_IMAP extends Net_IMAPProtocol {
         return $ret["PARSED"]["SEARCH"]["SEARCH_LIST"];
     }
 
-   
+
 
 
 
@@ -1362,8 +1369,13 @@ class Net_IMAP extends Net_IMAPProtocol {
      * @access public
      * @since  1.0
      */
-    function getStorageQuota($mailbox_name)
+    function getStorageQuota($mailbox_name = null )
     {
+       if($mailbox_name == null){
+            $mailbox_name = $this->getCurrentMailbox();
+        }
+
+
         if ( PEAR::isError( $ret = $this->cmdGetQuota($mailbox_name) ) ) {
             return new PEAR_Error($ret->getMessage());
         }
@@ -1393,8 +1405,12 @@ class Net_IMAP extends Net_IMAPProtocol {
      * @access public
      * @since  1.0
      */
-    function getMessagesQuota($mailbox_name)
+    function getMessagesQuota($mailbox_name = null )
     {
+       if($mailbox_name == null){
+            $mailbox_name = $this->getCurrentMailbox();
+        }
+
         if ( PEAR::isError( $ret = $this->cmdGetQuota($mailbox_name) ) ) {
             return new PEAR_Error($ret->getMessage());
         }
@@ -1468,7 +1484,7 @@ class Net_IMAP extends Net_IMAPProtocol {
 
     /******************************************************************
     **                                                               **
-    **           ALC METHODS                                         **
+    **           ACL METHODS                                         **
     **                                                               **
     ******************************************************************/
 
@@ -1485,7 +1501,11 @@ class Net_IMAP extends Net_IMAPProtocol {
      * @access public
      * @since  1.0
      */
-    function getACL($mailbox_name){
+    function getACL($mailbox_name = null )
+    {
+       if($mailbox_name == null){
+            $mailbox_name = $this->getCurrentMailbox();
+        }
         if ( PEAR::isError( $ret = $this->cmdGetACL($mailbox_name) ) ) {
             return new PEAR_Error($ret->getMessage());
         }
@@ -1634,6 +1654,115 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
+
+
+
+
+
+
+    /******************************************************************
+    **                                                               **
+    **           ANNOTATEMORE METHODS                                **
+    **                                                               **
+    ******************************************************************/
+
+
+
+
+
+
+    function setAnnotation($entry, $values, $mailbox_name = null )
+    {
+        if($mailbox_name == null){
+            $mailbox_name = $this->getCurrentMailbox();
+        }
+
+        if (PEAR::isError($ret = $this->cmdSetAnnotation($mailbox_name, $entry, $values))) {
+            return new PEAR_Error($ret->getMessage());
+        }
+        if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
+            return new PEAR_Error($ret['RESPONSE']['CODE'] . ', ' . $ret['RESPONSE']['STR_CODE']);
+        }
+        return true;
+    }
+
+
+
+
+
+
+    function deleteAnnotation($entry, $values, $mailbox_name = null )
+    {
+        if($mailbox_name == null){
+            $mailbox_name = $this->getCurrentMailbox();
+        }
+
+        if (PEAR::isError($ret = $this->cmdDeleteAnnotation($mailbox_name, $entry, $values))) {
+            return new PEAR_Error($ret->getMessage());
+        }
+        if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
+            return new PEAR_Error($ret['RESPONSE']['CODE'] . ', ' . $ret['RESPONSE']['STR_CODE']);
+        }
+        return true;
+    }
+
+
+
+
+
+
+    function getAnnotation($entries, $values, $mailbox_name = null)
+    {
+        if($mailbox_name == null){
+            $mailbox_name = $this->getCurrentMailbox();
+        }
+        if (!is_array($entries)) {
+            $entries = array($entries);
+        }
+        if (!is_array($values)) {
+            $values = array($values);
+        }
+
+        if (PEAR::isError($ret = $this->cmdGetAnnotation($mailbox_name, $entries, $values))) {
+            return new PEAR_Error($ret->getMessage());
+        }
+        if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
+            return new PEAR_Error($ret['RESPONSE']['CODE'] . ', ' . $ret['RESPONSE']['STR_CODE']);
+        }
+        $ret_aux = array();
+        if (isset($ret['PARSED'])) {
+            foreach ($ret['PARSED'] as $mbox) {
+                $rawvalues = $mbox['EXT']['ATTRIBUTES'];
+                $values = array();
+                for ($i = 0; $i < count($rawvalues); $i += 2) {
+                    $values[$rawvalues[$i]] = $rawvalues[$i + 1];
+                }
+                $mbox['EXT']['ATTRIBUTES'] = $values;
+                $ret_aux[] = $mbox['EXT'];
+            }
+        }
+        if (count($ret_aux) == 1 && $ret_aux[0]['MAILBOX'] == $mailbox_name) {
+            if (count($entries) == 1 && $ret_aux[0]['ENTRY'] == $entries[0]) {
+                if (count($ret_aux[0]['ATTRIBUTES']) == 1 && count($values) == 1) {
+                    $attrs = array_keys($ret_aux[0]['ATTRIBUTES']);
+                    $vals = array_keys($values);
+                    if ($attrs[0] == $vals[0]) {
+                        return $ret_aux[0]['ATTRIBUTES'][$attrs[0]];
+                    }
+                }
+            }
+        }
+        return $ret_aux;
+    }
+
+
+
+
+
+
+
+
+
     /*
     *   Transform an array to a list to be used in the cmdFetch method
     *
@@ -1663,16 +1792,16 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
     function getSize(){
-        return $this->getMailboxSize();    
+        return $this->getMailboxSize();
     }
-    
-    
+
+
     function numMsg($mailbox = null){
         return $this->getNumberOfMessages($mailbox);
     }
-    
 
-        
+
+
     /*
     * Returns the entire message with given message number.
     *
@@ -1688,23 +1817,23 @@ class Net_IMAP extends Net_IMAPProtocol {
         }else{
             return $ret;
         }
-        
+
     }
 
-    
+
     function getListing($msg_id = null)
     {
         return $this->getMessagesList($msg_id);
     }
-    
-    
+
+
     function deleteMsg($msg_id){
         return $this->deleteMessages($msg_id);
     }
-    
 
 
-    
-    
+
+
+
 }
 ?>
