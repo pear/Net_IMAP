@@ -688,11 +688,7 @@ class Net_IMAPProtocol {
             return new PEAR_Error( 'not connected!' );
         }
 
-        $cmdid = $this->_getCmdId();
-        if ( PEAR::isError( $error = $this->_putCMD( $cmdid , 'LOGOUT' ) ) ) {
-            return $error;
-        }
-        if ( PEAR::isError($args = $this->_getRawResponse() ) ) {
+        if ( PEAR::isError( $args = $this->_genericCommand( 'LOGOUT' ) ) ) {
             return $args;
         }
         if (PEAR::isError( $this->_socket->disconnect() ) ) {
@@ -2706,7 +2702,7 @@ class Net_IMAPProtocol {
         */
 
             $str_line = rtrim( substr( $this->_getToEOL( $str , false ) , 1 ) );
-            $result_array[] = array( "COMMAND"=>$command , "EXT"=> $str_line );
+            $result_array[] = array( "COMMAND"=>$token , "EXT"=> $str_line );
             return $result_array;
             break;
 
