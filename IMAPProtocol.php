@@ -1462,7 +1462,16 @@ class Net_IMAPProtocol {
         //Make the command request
         $param=sprintf("%s (",$mailbox_name);
         if($storageQuota != null ){
-            $param=sprintf("%sSTORAGE %s",$param,$storageQuota);
+            if ($storageQuota == -1) {
+                // set -1 to remove a quota
+                $param = sprintf("%s", $param);
+            } elseif ($storageQuota == strtolower('remove')) {
+                // this is a cyrus rmquota specific feature
+                // see http://email.uoa.gr/projects/cyrus/quota-patches/rmquota/
+                $param = sprintf("%sREMOVE 1", $param);
+            } else {
+                $param = sprintf("%sSTORAGE %s", $param, $storageQuota);
+            }
             if( $messagesQuota != null ){
                 //if we have both types of quota on the same call we must append an space between
                 // those parameters
@@ -2542,6 +2551,12 @@ class Net_IMAPProtocol {
                 C: A0004 GETQUOTA user.damian
                 S: * QUOTA user.damian (STORAGE 1781460 4000000)
                 S: A0004 OK Completed
+
+            RFC 2087 section 5.1 says the list could be empty:
+
+                C: A0004 GETQUOTA user.damian
+                S: * QUOTA user.damian ()
+                S: A0004 OK Completed
             */
 
             $mailbox = $this->_parseOneStringResponse( $str,__LINE__ , __FILE__ );
@@ -2550,6 +2565,10 @@ class Net_IMAPProtocol {
 
             $ret_aux = array("MAILBOX"=>$this->utf_7_decode($mailbox) );
             $this->_getNextToken( $str , $quota_resp );
+            if ($quota_resp == ')' ) {
+                // empty list, apparently no STORAGE or MESSAGE quota set
+                return array($token => $ret_aux);
+            }
             if( ( $ext = $this->_retrParsedResponse( $str , $quota_resp )) == false){
                     $this->_prot_error("bogus response!!!!" , __LINE__ , __FILE__ );
             }
