@@ -2116,29 +2116,30 @@ class Net_IMAPProtocol {
             return $params_arr;
         }
 
-
         if( is_array($params_arr) ){
-            $personal_name  = $params_arr[0][0];
-            $at_domain_list = $params_arr[0][1];
-            $mailbox_name   = $params_arr[0][2];
-            $host_name      = $params_arr[0][3];
-            if( $mailbox_name!='' && $host_name!='' ){
-                $email=$mailbox_name . "@" . $host_name;
-            }else{
-                $email=false;
-            }
-            if($email==false){
-                $rfc822_email=false;
-            }else{
-                if(!isset($personal_name)){
-                    $rfc822_email= "<". $email . ">";
+            foreach ($params_arr as $index => $address_arr) {
+                $personal_name  = $address_arr[0];
+                $at_domain_list = $address_arr[1];
+                $mailbox_name   = $address_arr[2];
+                $host_name      = $address_arr[3];
+                if( $mailbox_name!='' && $host_name!='' ){
+                        $email=$mailbox_name . "@" . $host_name;
                 }else{
-                    $rfc822_email= "\"". $personal_name ."\" <". $email . ">";
+                        $email=false;
                 }
+                if($email==false){
+                        $rfc822_email=false;
+                }else{
+                        if(!isset($personal_name)){
+                        $rfc822_email= "<". $email . ">";
+                        }else{
+                        $rfc822_email= "\"". $personal_name ."\" <". $email . ">";
+                        }
+                }
+                $email_arr[] = array ( "PERSONAL_NAME"=> $personal_name , "AT_DOMAIN_LIST"=>$at_domain_list ,
+                                        "MAILBOX_NAME"=> $this->utf_7_decode($mailbox_name), "HOST_NAME"=> $host_name,
+                                        "EMAIL"=>$email , "RFC822_EMAIL" => $rfc822_email );
             }
-            $email_arr[] = array ( "PERSONAL_NAME"=> $personal_name , "AT_DOMAIN_LIST"=>$at_domain_list ,
-                                   "MAILBOX_NAME"=> $this->utf_7_decode($mailbox_name), "HOST_NAME"=> $host_name,
-                                   "EMAIL"=>$email , "RFC822_EMAIL" => $rfc822_email );
             return $email_arr;
         }
 
