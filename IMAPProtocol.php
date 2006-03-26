@@ -311,7 +311,7 @@ class Net_IMAPProtocol {
     function _putCMD($commandId , $command, $args = '')
     {
         if ( !empty( $args ) ) {
-            return $this->_send( $commandId . " " . $command . ' ' . $args . "\r\n" );
+            return $this->_send( $commandId . " " . $command . " " . $args . "\r\n" );
         }
         return $this->_send( $commandId . " " . $command . "\r\n" );
     }
@@ -808,48 +808,40 @@ class Net_IMAPProtocol {
     /**
      * Send the  CREATE Mailbox Command
      *
-     * @param string The mailbox to create.
+     * @param string $mailbox The mailbox to create.
+     * @param array  $options options to pass to create
      * @return array Returns an array containing the response
      *
      * @access public
      * @since  1.0
      */
-    function cmdCreate($mailbox)
+    function cmdCreate($mailbox, $options = null)
     {
-        $mailbox_name=sprintf("\"%s\"",$this->utf_7_encode($mailbox) );
-        return $this->_genericCommand('CREATE', $mailbox_name);
+        $args = "";
+        $mailbox_name = sprintf("\"%s\"",$this->utf_7_encode($mailbox));
+        $args = $this->_getCreateParams($options);
+        return $this->_genericCommand('CREATE', $mailbox_name.$args);
     }
-
-
-
-
-
-
 
     /**
      * Send the  RENAME Mailbox Command
      *
-     * @param string The old mailbox name.
-     * @param string The new (renamed) mailbox name.
+     * @param string $mailbox     The old mailbox name.
+     * @param string $new_mailbox The new (renamed) mailbox name.
+     * @param array  $options     options to pass to create
      *
      * @return array Returns an array containing the response
      *
      * @access public
      * @since  1.0
      */
-    function cmdRename($mailbox, $new_mailbox)
+    function cmdRename($mailbox, $new_mailbox, $options = null)
     {
         $mailbox_name=sprintf("\"%s\"",$this->utf_7_encode($mailbox) );
         $new_mailbox_name=sprintf("\"%s\"",$this->utf_7_encode($new_mailbox) );
-        return $this->_genericCommand('RENAME', "$mailbox_name $new_mailbox_name" );
+        $args = $this->_getCreateParams($options);
+        return $this->_genericCommand('RENAME', "$mailbox_name $new_mailbox_name".$args );
     }
-
-
-
-
-
-
-
 
     /**
      * Send the  DELETE Mailbox Command
@@ -3058,7 +3050,61 @@ class Net_IMAPProtocol {
         return $decoded_utf7;
     }
 
+    /**
+     * Make  CREATE/RENAME compatible option params
+     *
+     * @param array  $options options to format
+     * @return string Returns a string for formatted parameters
+     *
+     * @access private
+     * @since  1.1
+     */
+    function _getCreateParams($options)
+    {
+        $args = "";
+        if(is_null($options) === false && is_array($options) === true) {
+            foreach($options as $opt => $data) {
+                switch(strtoupper($opt)) {
+                    case "PARTITION":
+                        $args .= sprintf(" %s",$this->utf_7_encode($data));
+                        break;
+                    default:
+                        // ignore any unknown options
+                        break;
+                }
+            }
+        }
+        return $args;
+    }
 
+    /**
+    * Return true if the TLS negotiation was successful
+    *
+    * @access public
+    * @return mixed              true on success, PEAR_Error on failure
+    */
+    function cmdStartTLS()
+    {
+        if (PEAR::isError($res = $this->_genericCommand("STARTTLS"))) {
+            return $res;
+        }
+
+        if(stream_socket_enable_crypto($this->_socket->fp, true, STREAM_CRYPTO_METHOD_TLS_CLIENT) == false) {
+            $msg = 'Failed to establish TLS connection';
+            return new PEAR_Error($msg);
+        }
+
+        if($this->_debug === true) {
+            echo "STARTTLS Negotiation Successful\n";
+        }
+
+        // RFC says we need to query the server capabilities again
+        if(PEAR::isError($res = $this->cmdCapability() )) {
+            $msg = 'Failed to connect, server said: ' . $res->getMessage();
+            return new PEAR_Error($msg);
+        }
+        return true;
+    }
 
 }//Class
 ?>

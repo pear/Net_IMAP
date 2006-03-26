@@ -67,6 +67,15 @@ class Net_IMAP extends Net_IMAPProtocol {
     {
         $ret=$this->cmdConnect($host,$port);
         if($ret === true ){
+            // Determine server capabilities
+            $res = $this->cmdCapability();
+
+            // check if we can enable TLS via STARTTLS
+            if($this->hasCapability('STARTTLS') === true && function_exists('stream_socket_enable_crypto') === true) {
+                if (PEAR::isError($res = $this->cmdStartTLS())) {
+                    return $res;
+                }
+            }
             return $ret;
         }
         if(empty($ret)){
@@ -80,6 +89,7 @@ class Net_IMAP extends Net_IMAPProtocol {
                 return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
             }
         }
+
         return $ret;
     }
 
@@ -935,19 +945,19 @@ class Net_IMAP extends Net_IMAPProtocol {
     * Creates the mailbox $mailbox
     *
     * @param string $mailbox     mailbox name to create
+    * @param array  $options     options to pass to create
     *
     * @return mixed true on Success/PearError on Failure
     * @since 1.0
     */
-    function createMailbox($mailbox)
+    function createMailbox($mailbox, $options = null)
     {
-        $ret=$this->cmdCreate($mailbox);
+        $ret=$this->cmdCreate($mailbox, $options);
         if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
             return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
         }
         return true;
     }
-
 
 
 
@@ -981,13 +991,14 @@ class Net_IMAP extends Net_IMAPProtocol {
     * Renames the mailbox $mailbox
     *
     * @param string $mailbox     mailbox name to rename
+    * @param array  $options     options to pass to rename
     *
     * @return mixed true on Success/PearError on Failure
     * @since 1.0
     */
-    function renameMailbox($oldmailbox, $newmailbox)
+    function renameMailbox($oldmailbox, $newmailbox, $options = null)
     {
-        $ret=$this->cmdRename($oldmailbox,$newmailbox);
+        $ret=$this->cmdRename($oldmailbox,$newmailbox,$options);
         if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
             return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
         }
