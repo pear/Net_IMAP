@@ -930,7 +930,11 @@ class Net_IMAP extends Net_IMAPProtocol {
             return $ret;
         }
         if( count( $ret ) > 0 ){
-            return true;
+            foreach ($ret as $mailbox_name) {
+                if ($mailbox_name == $mailbox) {
+                    return true;
+                }
+            }
         }
         return false;
     }
