@@ -1198,7 +1198,219 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+    /**
+     * Sets the flags of the selected messages
+     *
+     * @param mixed  $msg_id  the message list or string "all" for all
+     * @param mixed  $flags   flags to set (space separated String or array)
+     * @param string $mod     "set" to set flags (default) 
+     *                        "add" to add flags
+     *                        "remove" to remove flags
+     *
+     * @return mixed    true on success/PearError on failure
+     */
+    function setFlags($msg_id, $flags, $mod = 'set')
+    {
+        // you can also provide an array of numbers to those emails
+        if ($msg_id == 'all') {
+            $message_set = '1:*';
+        } else {
+            if (is_array($msg_id)) {
+                $message_set = $this->_getSearchListFromArray($msg_id);
+            } else {
+                $message_set = $msg_id;
+            }
+        }
+        
+        $flaglist = '';
+        if (is_array($flags)) {
+            foreach ($flags as $flag) {
+                $flaglist .= $flag . ' ';
+            }
+        } else {
+            $flaglist = $flags;
+        }
+        
+        switch ($mod) {
+            case 'set':
+                $ret = $this->cmdStore($message_set, 'FLAGS', $flaglist);
+                break;
+            case 'add':
+                $ret = $this->cmdStore($message_set, '+FLAGS', $flaglist);
+                break;
+            case 'remove':
+                $ret = $this->cmdStore($message_set, '-FLAGS', $flaglist);
+                break;
+            default:
+                // Wrong Input
+                return new PEAR_Error('wrong input $mod');
+                break;
+        }
+        
+        if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
+            return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
+        } else {
+            return true;
+        }
+    }
 
+
+    /**
+     * adds flags to the selected messages
+     *
+     * @param mixed $flags   flags to set (space separated String or array)
+     * @param mixed $msg_id  the message list or string "all" for all
+     *
+     * @return mixed true on success/PearError on failure
+     */
+    function addFlags($msg_id, $flags)
+    {
+        return $this->setFlags($msg_id, $flags, $mod = 'add');
+    }
+
+
+    /**
+     * adds the Seen flag (\Seen) to the selected messages
+     *
+     * @param mixed $msg_id  the message list or string "all" for all
+     *
+     * @return mixed true   on success/PearError on failure
+     */
+    function addSeen($msg_id)
+    {
+        return $this->setFlags($msg_id, '\Seen', $mod = 'add');
+    }
+
+
+    /**
+     * adds the Answered flag (\Answered) to the selected messages
+     *
+     * @param mixed $msg_id  the message list or string "all" for all
+     *
+     * @return mixed    true on success/PearError on failure
+     */
+    function addAnswered($msg_id)
+    {
+        return $this->setFlags($msg_id, '\Answered', $mod = 'add');
+    }
+
+
+    /**
+     * adds the Deleted flag (\Deleted) to the selected messages
+     *
+     * @param mixed $msg_id  the message list or string "all" for all
+     *
+     * @return mixed    true on success/PearError on failure
+     */
+    function addDeleted($msg_id)
+    {
+        return $this->setFlags($msg_id, '\Deleted', $mod = 'add');
+    }
+
+
+    /**
+     * adds the Flagged flag (\Flagged) to the selected messages
+     *
+     * @param mixed $msg_id  the message list or string "all" for all
+     *
+     * @return mixed    true on success/PearError on failure
+     */
+    function addFlagged($msg_id)
+    {
+        return $this->setFlags($msg_id, '\Flagged', $mod = 'add');
+    }
+
+
+    /**
+     * adds the Draft flag (\Draft) to the selected messages
+     *
+     * @param mixed $msg_id  the message list or string "all" for all
+     *
+     * @return mixed    true on success/PearError on failure
+     */
+    function addDraft($msg_id)
+    {
+        return $this->setFlags($msg_id, '\Draft', $mod = 'add');
+    }
+
+
+    /**
+     * remove flags from the selected messages
+     *
+     * @param mixed $flags   flags to remove (space separated string or array)
+     * @param mixed $msg_id  the message list or string "all" for all
+     *
+     * @return mixed    true on success/PearError on failure
+     */
+    function removeFlags($msg_id, $flags)
+    {
+        return $this->setFlags($msg_id, $flags, $mod = 'remove');
+    }
+
+
+    /**
+     * remove the Seen flag (\Seen) from the selected messages
+     *
+     * @param mixed $msg_id  the message list or string "all" for all
+     *
+     * @return mixed    true on success/PearError on failure
+     */
+    function removeSeen($msg_id)
+    {
+        return $this->setFlags($msg_id, '\Seen', $mod = 'remove');
+    }
+
+
+    /**
+     * remove the Answered flag (\Answered) from the selected messages
+     *
+     * @param mixed $msg_id  the message list or string "all" for all
+     *
+     * @return mixed    true on success/PearError on failure
+     */
+    function removeAnswered($msg_id)
+    {
+        return $this->setFlags($msg_id, '\Answered', $mod = 'remove');
+    }
+
+
+    /**
+     * remove the Deleted flag (\Deleted) from the selected messages
+     *
+     * @param mixed $msg_id  the message list or string "all" for all
+     *
+     * @return mixed    true on success/PearError on failure
+     */
+    function removeDeleted($msg_id)
+    {
+        return $this->setFlags($msg_id, '\Deleted', $mod = 'remove');
+    }
+
+
+    /**
+     * remove the Flagged flag (\Flagged) from the selected messages
+     *
+     * @param mixed $msg_id  the message list or string "all" for all
+     *
+     * @return mixed    true on success/PearError on failure
+     */
+    function removeFlagged($msg_id)
+    {
+        return $this->setFlags($msg_id, '\Flagged', $mod = 'remove');
+    }
+
+
+    /**
+     * remove the Draft flag (\Draft) from the selected messages
+     *
+     * @param mixed $msg_id  the message list or string "all" for all
+     *
+     * @return mixed    true on success/PearError on failure
+     */
+    function removeDraft($msg_id)
+    {
+        return $this->setFlags($msg_id, '\Draft', $mod = 'remove');
+    }
 
    /**
     * check the Seen flag
