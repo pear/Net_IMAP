@@ -265,37 +265,41 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
     /*
-    * Returns the  headers of the specified message in an
-    * associative array. Array keys are the header names, array
-    * values are the header values. In the case of multiple headers
-    * having the same names, eg Received:, the array value will be
-    * an indexed array of all the header values.
-    *
-    * @param  $msg_id Message number
-    * @return mixed   Either array of headers or false on error
-    */
-    function getParsedHeaders($msg_id)
+     * Returns the  headers of the specified message in an
+     * associative array. Array keys are the header names, array
+     * values are the header values. In the case of multiple headers
+     * having the same names, eg Received:, the array value will be
+     * an indexed array of all the header values.
+     *
+     * @param  int      $msg_id         Message number
+     * @param  boolean  $keysToUpper    false (default) original header names
+     *                                  true change keys (header names) toupper
+     *
+     * @return mixed    Either array of headers or false on error
+     */
+    function getParsedHeaders($msg_id, $keysToUpper = false)
     {
-            $ret=$this->getRawHeaders($msg_id);
+        $ret=$this->getRawHeaders($msg_id);
 
-            $raw_headers = rtrim($ret);
-            $raw_headers = preg_replace("/\r\n[ \t]+/", ' ', $raw_headers); // Unfold headers
-            $raw_headers = explode("\r\n", $raw_headers);
-            foreach ($raw_headers as $value) {
-                $name  = substr($value, 0, $pos = strpos($value, ':'));
-                $value = ltrim(substr($value, $pos + 1));
-                if (isset($headers[$name]) AND is_array($headers[$name])) {
-                    $headers[$name][] = $value;
-                } elseif (isset($headers[$name])) {
-                    $headers[$name] = array($headers[$name], $value);
-                } else {
-                    $headers[$name] = $value;
-                }
+        $raw_headers = rtrim($ret);
+        $raw_headers = preg_replace("/\r\n[ \t]+/", ' ', $raw_headers); // Unfold headers
+        $raw_headers = explode("\r\n", $raw_headers);
+        foreach ($raw_headers as $value) {
+            $name  = substr($value, 0, $pos = strpos($value, ':'));
+            if ($keysToUpper) {
+                $name = strtoupper($name);
             }
-
-            return $headers;
+            $value = ltrim(substr($value, $pos + 1));
+            if (isset($headers[$name]) && is_array($headers[$name])) {
+                $headers[$name][] = $value;
+            } elseif (isset($headers[$name])) {
+                $headers[$name] = array($headers[$name], $value);
+            } else {
+                $headers[$name] = $value;
+            }
+        }
+        return $headers;
     }
-
 
 
 
