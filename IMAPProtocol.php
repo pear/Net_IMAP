@@ -2735,9 +2735,15 @@ class Net_IMAPProtocol {
         case "MYRIGHTS" :
                 $this->_parseSpace( $str , __LINE__ , __FILE__ );
                 $this->_getNextToken( $str ,$mailbox );
-                $this->_parseSpace( $str , __LINE__ , __FILE__ );
-                $this->_getNextToken( $str , $granted );
-
+                // Patch to handle the alternate MYRIGHTS response from Courier-IMAP
+                if ($str==')'){
+                    $granted = $mailbox;
+                    $mailbox = $this->currentMailbox;
+                }else{
+                    $this->_parseSpace( $str , __LINE__ , __FILE__ );
+                    $this->_getNextToken( $str , $granted );
+                }
+                // End Patch
                 $result_array = array( "MAILBOX"=>$this->utf_7_decode($mailbox) , "GRANTED"=>$granted );
                 return $result_array;
             break;
