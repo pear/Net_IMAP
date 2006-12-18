@@ -1081,15 +1081,18 @@ class Net_IMAPProtocol {
         $msg_size=$this->_getLineLength($msg);
 
         $mailbox_name=$this->_createQuotedString($mailbox);
+        if($flags_list != '') {
+          $flags_list = " ($flags_list)";
+        }
         // TODO:
         // Falta el codigo para que flags list y time hagan algo!!
         if( $this->hasCapability( "LITERAL+" ) == true ){
-            $param=sprintf("%s %s%s{%s+}\r\n%s",$mailbox_name,$flags_list,$time,$msg_size,$msg);
+            $param=sprintf("%s%s%s {%s+}\r\n%s",$mailbox_name,$flags_list,$time,$msg_size,$msg);
             if (PEAR::isError($error = $this->_putCMD($cmdid , 'APPEND' , $param ) ) ) {
                 return $error;
             }
         }else{
-            $param=sprintf("%s %s%s{%s}\r\n",$mailbox_name,$flags_list,$time,$msg_size);
+            $param=sprintf("%s%s%s {%s}",$mailbox_name,$flags_list,$time,$msg_size);
             if (PEAR::isError($error = $this->_putCMD($cmdid , 'APPEND' , $param ) ) ) {
             return $error;
             }
@@ -1097,7 +1100,7 @@ class Net_IMAPProtocol {
             return $error;
             }
 
-            if (PEAR::isError($error = $this->_send( $msg ) ) ) {
+            if (PEAR::isError($error = $this->_send( $msg."\r\n" ) ) ) {
             return $error;
             }
         }
@@ -2635,9 +2638,12 @@ class Net_IMAPProtocol {
             $mailbox = $this->utf_7_decode($this->_parseOneStringResponse( $str,__LINE__ , __FILE__ ));
 
             $str_line = rtrim( substr( $this->_getToEOL( $str , false ) , 0 ) );
-
-            $quotaroot = $this->_parseOneStringResponse( $str_line,__LINE__ , __FILE__ );
-            $ret = @array( "MAILBOX"=>$this->utf_7_decode($mailbox) , $token=>$quotaroot );
+            if(empty($str_line)) {
+              $ret = @array( "MAILBOX"=>$this->utf_7_decode($mailbox));
+            } else {
+              $quotaroot = $this->_parseOneStringResponse( $str_line,__LINE__ , __FILE__ );
+              $ret = @array( "MAILBOX"=>$this->utf_7_decode($mailbox) , $token=>$quotaroot );
+            }
             return array($token=>$ret);
             break;
         case "STORAGE" :

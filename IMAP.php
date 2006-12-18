@@ -385,7 +385,7 @@ class Net_IMAP extends Net_IMAPProtocol {
                 $a['FLAGS']=$ret["PARSED"][$i]['EXT']['FLAGS'];
                 $a['INTERNALDATE']=$ret["PARSED"][$i]['EXT']['INTERNALDATE'];
                 $a['SIZE']=$ret["PARSED"][$i]['EXT']['RFC822.SIZE'];
-                if(preg_match('/^content-type: (.*);/i', $ret["PARSED"][$i]['EXT']['BODY[HEADER.FIELDS (CONTENT-TYPE)]']['CONTENT'], $matches)) {
+                if(preg_match('/^content-type: (.*);/iU', $ret["PARSED"][$i]['EXT']['BODY[HEADER.FIELDS (CONTENT-TYPE)]']['CONTENT'], $matches)) {
                   $a['MIMETYPE']=strtolower($matches[1]);
                 }
                 $env[]=$a;
@@ -475,7 +475,7 @@ class Net_IMAP extends Net_IMAPProtocol {
         $structure = array();
 
         $mimeParts = array();
-        $this->_parseStructureArray($ret, &$mimeParts);
+        $this->_parseStructureArray($ret, $mimeParts);
 
         return array_shift($mimeParts);
     }
@@ -488,7 +488,6 @@ class Net_IMAP extends Net_IMAPProtocol {
         }
 
         #print "<hr>Net_IMAP::_parseStructureArray _partID: $_partID<br>";
-        #_debug_array($_structure);
         $mimeParts = array();
         $subPartID = 1;
         $partID = ($_partID == '') ? '' : $_partID.'.';
@@ -534,6 +533,11 @@ class Net_IMAP extends Net_IMAPProtocol {
               
                   break;
 
+                 case 'IMAGE':
+                  $this->_parseStructureImageArray($structurePart, $subMimeParts, $partID.$subPartID);
+                  
+                  break;
+
                  case 'MESSAGE':
                   $this->_parseStructureMessageArray($structurePart, $subMimeParts, $partID.$subPartID);
                   
@@ -566,6 +570,16 @@ class Net_IMAP extends Net_IMAPProtocol {
         }
     }
     
+    function _parseStructureImageArray($_structure, &$_mimeParts, $_partID) 
+    {
+        #print "Net_IMAP::_parseStructureImageArray _partID: $_partID<br>";
+        $part = $this->_parseStructureCommonFields($_structure);
+        $part->cid = $_structure[3];
+        $part->partID = $_partID;
+        
+        $_mimeParts[$_partID] = $part;
+    }
+
     function _parseStructureApplicationArray($_structure, &$_mimeParts, $_partID) 
     {
         #print "Net_IMAP::_parseStructureApplicationArray _partID: $_partID<br>";
@@ -1044,12 +1058,12 @@ class Net_IMAP extends Net_IMAPProtocol {
     * @return mixed true on Success/PearError on Failure
     * @since 1.0
     */
-    function appendMessage($rfc_message, $mailbox = null )
+    function appendMessage($rfc_message, $mailbox = null , $flags_list = '')
     {
         if($mailbox == null){
             $mailbox = $this->getCurrentMailbox();
         }
-        $ret=$this->cmdAppend($mailbox,$rfc_message);
+        $ret=$this->cmdAppend($mailbox,$rfc_message,$flags_list);
         if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
             return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
         }
