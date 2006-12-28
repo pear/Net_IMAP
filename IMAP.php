@@ -1551,9 +1551,7 @@ class Net_IMAP extends Net_IMAPProtocol {
         
         $flaglist = '';
         if (is_array($flags)) {
-            foreach ($flags as $flag) {
-                $flaglist .= $flag . ' ';
-            }
+            $flaglist = implode(' ', $flags);
         } else {
             $flaglist = $flags;
         }
