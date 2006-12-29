@@ -57,7 +57,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
         // ToDo: insert some mails
         // $this->messages['test_mail1'] = file_get_contents('mails1.mbox');
         // $this->messages['test_mail2'] = file_get_contents('mails2.mbox');
-        // $this->messages['test_mail3'] = file_get_contents('mails3.mbos');
+        // $this->messages['test_mail3'] = file_get_contents('mails3.mbox');
     }
 
     protected function tearDown()
@@ -89,6 +89,12 @@ class testIMAP extends PHPUnit_Framework_TestCase
         $this->assertTrue(!PEAR::isError($result), 'Error on disconnect');
     }
 
+
+
+    ///
+    /// connection tests
+    ///
+
     public function testConnect()
     {
         $result = $this->fixture->connect(HOST, PORT);
@@ -113,6 +119,12 @@ class testIMAP extends PHPUnit_Framework_TestCase
         $this->assertTrue(!PEAR::isError($result), 'Error on disconnect');
     }
 
+
+
+    ///
+    /// mailbox tests
+    ///
+
     public function testCreateMailbox()
     {
         $this->login();
@@ -130,22 +142,15 @@ class testIMAP extends PHPUnit_Framework_TestCase
             $result = $this->fixture->createMailbox($mailbox);
             $this->assertTrue($result, 'Can not create mailbox '.$mailbox);
         }
-    }
-
-    public function testListsubscribedMailboxes()
-    {
-        $this->login();
-        $subscribed = $this->fixture->listsubscribedMailboxes();
+        // print_r($this->fixture->getMailboxes());
         $this->logout();
-        
-        $this->assertTrue(!PEAR::isError($subscribed), 'Can not list subscribed mailboxes');
     }
-        
 
     public function testGetMailboxes()
     {
         $this->login();
         $mailboxes = $this->fixture->getMailboxes();
+        // print_r($mailboxes);
         $this->logout();
 
         $this->assertTrue(!PEAR::isError($mailboxes), 'Can not list mailboxes');
@@ -159,12 +164,16 @@ class testIMAP extends PHPUnit_Framework_TestCase
             $result = $this->fixture->selectMailbox($mailbox);
             $this->assertTrue($result, 'Can not select mailbox '.$mailbox);
         }
+        $this->logout();
     }
+
+    // examineMailbox needs some messages for testing
 
     public function testRenameMailbox()
     {
         $this->login();
         $mailboxes = $this->fixture->getMailboxes();
+        // print_r($mailboxes);
         foreach ($mailboxes as $mailbox) {
             if ($mailbox == 'INBOX') {
                 continue;
@@ -172,7 +181,110 @@ class testIMAP extends PHPUnit_Framework_TestCase
             $result = $this->fixture->renameMailbox($mailbox, $mailbox.'renamed');
             $this->assertTrue(!PEAR::isError($result), 'Can not rename mailbox '.$mailbox);
         }
-        // ToDo: get new list and check if rename works well
+        $mailboxes_new = $this->fixture->getMailboxes();
+        for ($i=0; $i < sizeof($mailboxes_new); $i++) {
+            if ($mailboxes[$i] == 'INBOX') {
+                continue;
+            }
+            $this->assertTrue(($mailboxes[$i].'renamed' == $mailboxes_new[$i]), 'Mailbox '.$mailboxes[$i].' not renamed');
+        }
+        // print_r($mailboxes_new);
+
+        $this->logout();
+    }
+
+    public function testMailboxExist()
+    {
+        $this->login();
+        // this mailbox name must not exist before
+        $mailboxname = 'INBOX/testMailboxExistöäüß';
+        
+        $result = $this->fixture->mailboxExist($mailboxname);
+        $this->assertFalse($result, 'Mailbox should NOT exist');
+
+        $result = $this->fixture->createMailbox($mailboxname);
+        $this->assertTrue(!PEAR::isError($result), 'Can not crate mailbox');
+        
+        $result = $this->fixture->mailboxExist($mailboxname);
+        $this->assertTrue($result, 'Mailbox should exist');
+
+        $this->logout();
+    }
+
+    public function testDeleteMailbox()
+    {
+        $this->login();
+        $mailboxes = $this->fixture->getMailboxes();
+        // print_r($mailboxes);
+        foreach ($mailboxes as $mailbox) {
+            if ($mailbox == 'INBOX') {
+                continue;
+            }
+            $result = $this->fixture->deleteMailbox($mailbox);
+            $this->assertTrue(!PEAR::isError($result), 'Can not delete mailbox '.$mailbox);
+        }
+        // print_r($this->fixture->getMailboxes());
+
+        $this->logout();
+    }
+
+    public function testGetMailboxSize()
+    {
+        $this->login();
+        $mailboxes = $this->fixture->getMailboxes();
+        foreach ($mailboxes as $mailbox) {
+            $result = $this->fixture->getMailboxSize($mailbox);
+            // print_r($result);
+            $this->assertTrue(!PEAR::isError($result), 'Can not get size for mailbox '.$mailbox);
+        }
+
+        $this->logout();
+    }
+
+
+
+    ///
+    /// suscribing tests
+    ///
+
+    public function testSubscribeMailbox()
+    {
+        $this->login();
+        $this->fixture->createMailbox('INBOX/testSubscribe');
+        $result = $this->fixture->subscribeMailbox('INBOX/testSubscribe');
+        $this->assertTrue(!PEAR::isError($result), 'Can not subscribe Mailbox');
+
+        $this->logout();
+    }
+
+    public function testListsubscribedMailboxes()
+    {
+        $this->login();
+        $this->fixture->createMailbox('INBOX/testSubscribe');
+        $this->fixture->subscribeMailbox('INBOX');
+        $this->fixture->subscribeMailbox('INBOX/testSubscribe');
+        $subscribed = $this->fixture->listsubscribedMailboxes();
+        //print_r($subscribed);
+        $this->logout();
+        
+        $this->assertTrue(!PEAR::isError($subscribed), 'Can not list subscribed mailboxes');
+    }
+
+    public function testUnsubscribeMailbox()
+    {
+        $this->login();
+        $subscribed = $this->fixture->listsubscribedMailboxes();
+        // print_r($subscribed);
+        foreach ($subscribed as $mailbox) {
+            if ($mailbox == 'INBOX') {
+                continue;
+            }
+            $result = $this->fixture->unsubscribeMailbox($mailbox);
+            $this->assertTrue(!PEAR::isError($result), 'Can not unsubscribe mailbox '.$mailbox);
+        }
+        // print_r($this->fixture->listsubscribedMailboxes());
+
+        $this->logout();
     }
 
 }
