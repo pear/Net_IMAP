@@ -1303,6 +1303,9 @@ class Net_IMAP extends Net_IMAPProtocol {
     {
     // TODO verificar que el mailbox se encuentra vacio y, sino borrar los mensajes antes~!!!!!!
         $ret=$this->cmdDelete($mailbox);
+        if (PEAR::isError($ret)) {
+            return $ret;
+        }
         if(strtoupper($ret["RESPONSE"]["CODE"]) != "OK"){
             return new PEAR_Error($ret["RESPONSE"]["CODE"] . ", " . $ret["RESPONSE"]["STR_CODE"]);
         }
