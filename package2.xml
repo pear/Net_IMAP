@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package packagerversion="1.4.11" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
+http://pear.php.net/dtd/tasks-1.0.xsd
+http://pear.php.net/dtd/package-2.0
+http://pear.php.net/dtd/package-2.0.xsd">
+ <name>Net_IMAP</name>
+ <channel>pear.php.net</channel>
+ <summary>Provides an implementation of the IMAP protocol</summary>
+ <description>Provides an implementation of the IMAP4Rev1 protocol using PEAR&apos;s Net_Socket and the optional Auth_SASL class.
+ </description>
+ <lead>
+  <name>Anish Mistry</name>
+  <user>amistry</user>
+  <email>amistry@am-productions.biz</email>
+  <active>yes</active>
+ </lead>
+ <lead>
+  <name>Damian Alejandro Fernandez Sosa</name>
+  <user>damian</user>
+  <email>damlists@cnba.uba.ar</email>
+  <active>no</active>
+ </lead>
+ <developer>
+  <name>Sebastian Ebling</name>
+  <user>hudeldudel</user>
+  <email>hudeldudel@php.net</email>
+  <active>yes</active>
+ </developer>
+ <date>2007-01-06</date>
+ <time>17:02:31</time>
+ <version>
+  <release>1.1.0beta1</release>
+  <api>1.1.0beta1</api>
+ </version>
+ <stability>
+  <release>beta</release>
+  <api>beta</api>
+ </stability>
+ <license uri="http://www.php.net/license">PHP License</license>
+ <notes>new beta release fixing bugs and introducing new features
+* bugfixing
+* add STARTTLS support for PHP 5.1 and above
+* added methods for manipulating message flags
+* added support for fetching the mailbox status at once (getStatus)
+* added support for fetching subparts and the headers of subparts
+* added support for fetching the namespace
+* added support for fetching the bodystructure
+* added support for setting flags when appending messages
+* added method for parsing image information
+ </notes>
+ <contents>
+  <dir name="/">
+   <dir name="docs">
+    <file baseinstalldir="Net" name="test_IMAP.php" role="test" />
+    <file baseinstalldir="Net" name="test_IMAPProtocol.php" role="test" />
+   </dir> <!-- /docs -->
+   <dir name="tests">
+    <file baseinstalldir="Net" name="settings.php" role="test" />
+    <file baseinstalldir="Net" name="testAll.php" role="test" />
+    <file baseinstalldir="Net" name="testIMAP.php" role="test" />
+   </dir> <!-- /tests -->
+   <file baseinstalldir="Net" name="IMAP.php" role="php" />
+   <file baseinstalldir="Net" name="IMAPProtocol.php" role="php" />
+  </dir> <!-- / -->
+ </contents>
+ <dependencies>
+  <required>
+   <php>
+    <min>4.0.0</min>
+   </php>
+   <pearinstaller>
+    <min>1.4.0b1</min>
+   </pearinstaller>
+   <package>
+    <name>Net_Socket</name>
+    <channel>pear.php.net</channel>
+    <min>1.0</min>
+   </package>
+  </required>
+ </dependencies>
+ <phprelease />
+ <changelog>
+  <release>
+   <version>
+    <release>1.0.3</release>
+    <api>1.0.3</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <date>2004-09-25</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>* Fixed bug #2379 (Yes it was a copy-paste bug!) Thanks to omicron at mighty dot co dot za
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.0.2</release>
+    <api>1.0.2</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <date>2004-08-04</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>* Fixed bug #1772
+* Fixed bug #2028
+
+* Changed getStorageQuota, getMessagesQuota,getACL defautting mailbox_name to current selected mailbox
+
+    
+
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.0.1</release>
+    <api>1.0.1</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <date>2004-05-22</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>* Fixed bug #1568
+    
+
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.0.0</release>
+    <api>1.0.0</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <date>2004-05-22</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>* The package is marked as stable
+* Fixed bug #1280
+* Fixed a bug returning &quot; , &quot;  when the password is not correct
+
+    
+
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>0.7.1</release>
+    <api>0.7.1</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2004-02-12</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>* The parser was modified to parse any BODY[XXXXXX] response (not supported spaces in XXXXX yet) thanks to Richard Heyes for the tip
+
+    
+
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>0.7</release>
+    <api>0.7</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2004-02-02</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>- Fixed bug in mailboxExist
+- Fixed bug #55
+    
+
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>0.6</release>
+    <api>0.6</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2003-07-20</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>- Fixed bugs 24706 and  24707
+- Fixed method listsubscribedMailboxes() and now works like getMailboxes()
+- added hasFlag() method to allow th check any flag the IMAP server has
+- Modified isDeleted,isDraft,isAnswered,isFlagged,isSeen methods to use hasFlag to not duplicate the code
+- Removed duplicated method getHierarchyDelimiter() i have the same method in IMAP.php and IMAPProtocol.php but
+   in one class it is called getHierachyDelimiter and in the other getHierarchyDelimiter() (missed  &apos;r&apos; )
+- Removed $_hierachyDelimiter variable (not needed anymore)
+- Fixed cmdSetQuotaRoot now it can set both quotas storage and messages
+- Reduced the class size by 10kbytes (IMAPProtocol.php)
+- moved all redundant code to _genericCommand.
+- Removed cmdUid() we don&apos;t need it anymore.
+      
+
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>0.5.1</release>
+    <api>0.5.1</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2003-07-14</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>- Fix warning in login() where the imap server does not have any Auth method suported
+      
+
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>0.5</release>
+    <api>0.5</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2003-07-12</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>- new getHierachyDelimiter() method to find the character used to separate subfolder parts (cyrus uses &apos;.&apos; , wu-imapd uses &apos;/&apos;)
+- added a 3rd parameter to getMailboxes() to return an array with mailboxnames and mailbox attributes instead of an array of names
+- new method getACLRights() to list the Rights any user has over a mailbox without been administrator (this is relative to the user&apos;s INBOX)
+      
+
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>0.4</release>
+    <api>0.4</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2003-04-27</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>- new search() method
+- new support for Message quotas (quotas for quantity of messages and not size)
+- new getNumberOfRecentMessages() method
+- new getNumberOfUnSeenMessages() method
+- new getEnvelope() method
+- new getSummary() method
+- new Subscription related methods: unsubscribeMailbox(),listsubscribedMailboxes(),subscribeMailbox()
+- updated Examples of use
+- tested with Ipswitch Imail 6.06 IMAP Server
+- tested with Cyrus Imapd 2.0.17 IMAP Server
+- tested with uw-imapd  IMAP Server
+- minor fixes in protocol parser
+- fix the parsing of rfc email in _getAddressList()
+- changed appendMessage() to make the mailbox parameter optional
+- changed copyMessages() method (the messages list can be now an array)
+- workarround about getMailboxes() to allow work with wu-imapd
+
+- getSummary(), getMessages(),deleteMessages() can accept an array of numbers as msg_id to retrieve/delete msg_id that
+  are in the array (designed to use the search() output as parammeter.
+  For example: to delete all seen messages in current mailbox you can do:
+        $imap-&gt;DeleteMessages($imap-&gt;search(&quot;SEEN&quot;));
+
+      
+
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>0.3</release>
+    <api>0.3</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2003-03-05</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>- Fixed a lot of warnings and uninitialized variables(hope all of them)
+- new getSummary method
+- updated Examples of use
+- tested with Ipswitch Imail 6.06 IMAP Server
+- tested with Cyrus Imapd 2.0.17 IMAP Server
+- tested with uw-imapd  IMAP Server
+- minor fixes in protocol parser
+- changed appendMessage() to make the mailbox parameter optional
+- added Subscription related methods: unsubscribeMailbox(),listsubscribedMailboxes(),subscribeMailbox()
+- workarround about getMailboxes() to allow work with wu-imapd
+- new search() method
+- added support for Message quotas (quotas for quantity of messages and not size)
+- getSummary(), getMessages(),deleteMessages() can accept an array of numbers as msg_id to retrieve/delete msg_id that
+  are in the array (designed to use the search() output as parammeter.
+  For example: to delete all seen messages in current mailbox you can do:
+        $imap-&gt;getDeleteMessages($imap-&gt;search(&quot;SEEN&quot;));
+      
+
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>0.2</release>
+    <api>0.2</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2003-02-22</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>- Ups  I call require_once ./IMAPProtocol.php instead of require_once Net/IMAPProtocol.php sorry
+- login method can authenticate with the following methods: DIGEST-MD4, CRAM-MD5, LOGIN and the login command
+- A lot of new mailbox-related functions
+- 2 Examples of use to the test  directory
+- fixes in protocol parser
+      
+
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>0.1</release>
+    <api>0.1</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2003-02-22</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>- The IMAP Procotol generic parser is now implemented.
+- Implemmented RFC2195
+- Implemmented RFC2060
+      
+
+   </notes>
+  </release>
+ </changelog>
+</package>
