@@ -2595,6 +2595,11 @@ class Net_IMAPProtocol {
                 S: A0004 OK Completed
             */
             $mailbox = $this->_parseOneStringResponse( $str,__LINE__ , __FILE__ );
+            // courier fix
+            if ($str[0].$str[1] == "\r\n") {
+                $ret_aux = array("MAILBOX"=>$this->utf_7_decode($mailbox) );
+                return array($token => $ret_aux);
+            }
             $this->_parseSpace( $str , __LINE__ , __FILE__ );
             $this->_parseString( $str , '(' , __LINE__ , __FILE__ );
 
