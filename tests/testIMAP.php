@@ -30,10 +30,7 @@ require_once 'PHPUnit/Framework/TestCase.php';
 /**
  * Connection settings
  */
-define('HOST',  'localtest');
-define('PORT',  '143');
-define('USER',  'testuser');
-define('PASS',  'testpass');
+require_once 'settings.php';
 
 /**
  * The test class
@@ -43,16 +40,34 @@ class testIMAP extends PHPUnit_Framework_TestCase
     // contains the object handle of the Net_IMAP class
     protected $fixture;
 
-    private $mailboxnames;
+    private $delimiter;
+
+    private $reservedFolders;
+
+    private $mailboxNames;
+
+    function testIMAP() {
+        $conn = new Net_IMAP(HOST, PORT);
+        // we need to login for getting the delimiter
+        $conn->login(USER, PASS);
+        if (PEAR::isError($this->delimiter = $conn->getHierarchyDelimiter())) {
+            echo 'Can not get hierarchy delimiter';
+            exit;
+        }
+        $conn->disconnect();
+
+        $this->reservedFolders = array( 'INBOX',
+                                        'INBOX'.$this->delimiter.'Trash');
+    }
 
     protected function setUp()
     {
         $this->fixture = new Net_IMAP();
 
         // some mailboxnames to test with
-        $this->mailboxnames = array();
-        $this->mailboxnames[] = 'INBOX/testcase';
-        $this->mailboxnames[] = 'INBOX/umlautsöäüßÖÄÜ';
+        $this->mailboxNames = array();
+        $this->mailboxNames[] = 'INBOX'.$this->delimiter.'testcase';
+        $this->mailboxNames[] = 'INBOX'.$this->delimiter.'umlautsöäüßÖÄÜ';
 
         // ToDo: insert some mails
         // $this->messages['test_mail1'] = file_get_contents('mails1.mbox');
@@ -65,7 +80,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
         // delete all mailboxes except INBOX
         $mailboxes = $this->fixture->getMailboxes();
         foreach ($mailboxes as $mailbox) {
-            if ($mailbox == 'INBOX') {
+            if (in_array($mailbox, $this->reservedFolders)) {
                 continue;
             }
             $this->fixture->deleteMailbox($mailbox);
@@ -130,7 +145,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
         $this->login();
         $mailboxes = $this->fixture->getMailboxes();
         foreach ($this->mailboxnames as $mailbox) {
-            if ($mailbox == 'INBOX') {
+            if (in_array($mailbox, $this->reservedFolders)) {
                 continue;
             }
             $this->fixture->deleteMailbox($mailbox);
@@ -162,7 +177,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
         $mailboxes = $this->fixture->getMailboxes();
         foreach ($mailboxes as $mailbox) {
             $result = $this->fixture->selectMailbox($mailbox);
-            $this->assertTrue($result, 'Can not select mailbox '.$mailbox);
+            $this->assertTrue(!PEAR::isError($result), 'Can not select mailbox '.$mailbox);
         }
         $this->logout();
     }
@@ -175,7 +190,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
         $mailboxes = $this->fixture->getMailboxes();
         // print_r($mailboxes);
         foreach ($mailboxes as $mailbox) {
-            if ($mailbox == 'INBOX') {
+            if (in_array($mailbox, $this->reservedFolders)) {
                 continue;
             }
             $result = $this->fixture->renameMailbox($mailbox, $mailbox.'renamed');
@@ -183,7 +198,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
         }
         $mailboxes_new = $this->fixture->getMailboxes();
         for ($i=0; $i < sizeof($mailboxes_new); $i++) {
-            if ($mailboxes[$i] == 'INBOX') {
+            if (in_array($mailboxes[$i], $this->reservedFolders)) {
                 continue;
             }
             $this->assertTrue(($mailboxes[$i].'renamed' == $mailboxes_new[$i]), 'Mailbox '.$mailboxes[$i].' not renamed');
@@ -197,13 +212,13 @@ class testIMAP extends PHPUnit_Framework_TestCase
     {
         $this->login();
         // this mailbox name must not exist before
-        $mailboxname = 'INBOX/testMailboxExistöäüß';
+        $mailboxname = 'INBOX'.$this->delimiter.'testMailboxExistöäüß';
         
         $result = $this->fixture->mailboxExist($mailboxname);
         $this->assertFalse($result, 'Mailbox should NOT exist');
 
         $result = $this->fixture->createMailbox($mailboxname);
-        $this->assertTrue(!PEAR::isError($result), 'Can not crate mailbox');
+        $this->assertTrue(!PEAR::isError($result), 'Can not create mailbox');
         
         $result = $this->fixture->mailboxExist($mailboxname);
         $this->assertTrue($result, 'Mailbox should exist');
@@ -217,7 +232,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
         $mailboxes = $this->fixture->getMailboxes();
         // print_r($mailboxes);
         foreach ($mailboxes as $mailbox) {
-            if ($mailbox == 'INBOX') {
+            if (in_array($mailbox, $this->reservedFolders)) {
                 continue;
             }
             $result = $this->fixture->deleteMailbox($mailbox);
@@ -250,8 +265,8 @@ class testIMAP extends PHPUnit_Framework_TestCase
     public function testSubscribeMailbox()
     {
         $this->login();
-        $this->fixture->createMailbox('INBOX/testSubscribe');
-        $result = $this->fixture->subscribeMailbox('INBOX/testSubscribe');
+        $this->fixture->createMailbox('INBOX'.$this->delimiter.'testSubscribe');
+        $result = $this->fixture->subscribeMailbox('INBOX'.$this->delimiter.'testSubscribe');
         $this->assertTrue(!PEAR::isError($result), 'Can not subscribe Mailbox');
 
         $this->logout();
@@ -260,9 +275,9 @@ class testIMAP extends PHPUnit_Framework_TestCase
     public function testListsubscribedMailboxes()
     {
         $this->login();
-        $this->fixture->createMailbox('INBOX/testSubscribe');
+        $this->fixture->createMailbox('INBOX'.$this->delimimter.'testSubscribe');
         $this->fixture->subscribeMailbox('INBOX');
-        $this->fixture->subscribeMailbox('INBOX/testSubscribe');
+        $this->fixture->subscribeMailbox('INBOX'.$this->delimiter.'testSubscribe');
         $subscribed = $this->fixture->listsubscribedMailboxes();
         //print_r($subscribed);
         $this->logout();
