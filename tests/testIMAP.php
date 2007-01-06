@@ -144,13 +144,13 @@ class testIMAP extends PHPUnit_Framework_TestCase
     {
         $this->login();
         $mailboxes = $this->fixture->getMailboxes();
-        foreach ($this->mailboxnames as $mailbox) {
+        foreach ($this->mailboxNames as $mailbox) {
             if (in_array($mailbox, $this->reservedFolders)) {
                 continue;
             }
             $this->fixture->deleteMailbox($mailbox);
         }
-        foreach ($this->mailboxnames as $mailbox) {
+        foreach ($this->mailboxNames as $mailbox) {
             if ($mailbox == 'INBOX') {
                 continue;
             }
