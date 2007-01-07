@@ -2810,8 +2810,6 @@ class Net_IMAPProtocol {
                     $this->_getNextToken( $str , $granted );
                 }
                 // End Patch
-                $this->_parseSpace( $str , __LINE__ , __FILE__ );
-                $this->_getNextToken( $str , $granted );
 
                 $result_array = array( "MAILBOX"=>$this->utf_7_decode($mailbox) , "GRANTED"=>$granted );
                 return $result_array;
