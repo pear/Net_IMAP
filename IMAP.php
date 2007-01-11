@@ -51,10 +51,11 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-     /**
+    /**
      * Attempt to connect to the IMAP server located at $host $port
      * @param string $host The IMAP server
      * @param string $port The IMAP port
+     * @param bool   $useTLS enable TLS support
      *
      *          It is only useful in a very few circunstances
      *          because the contructor already makes this job
@@ -65,13 +66,13 @@ class Net_IMAP extends Net_IMAPProtocol {
      */
     function connect($host, $port)
     {
-        $ret=$this->cmdConnect($host,$port);
+        $ret = $this->cmdConnect($host, $port, $useTLS = true);
         if($ret === true ){
             // Determine server capabilities
             $res = $this->cmdCapability();
 
             // check if we can enable TLS via STARTTLS
-            if($this->hasCapability('STARTTLS') === true && function_exists('stream_socket_enable_crypto') === true) {
+            if ($this->hasCapability('STARTTLS') === true && $useTLS === true && function_exists('stream_socket_enable_crypto') === true) {
                 if (PEAR::isError($res = $this->cmdStartTLS())) {
                     return $res;
                 }
@@ -385,8 +386,15 @@ class Net_IMAP extends Net_IMAPProtocol {
                 $a['FLAGS']=$ret["PARSED"][$i]['EXT']['FLAGS'];
                 $a['INTERNALDATE']=$ret["PARSED"][$i]['EXT']['INTERNALDATE'];
                 $a['SIZE']=$ret["PARSED"][$i]['EXT']['RFC822.SIZE'];
-                if(preg_match('/^content-type: (.*);/iU', $ret["PARSED"][$i]['EXT']['BODY[HEADER.FIELDS (CONTENT-TYPE)]']['CONTENT'], $matches)) {
-                  $a['MIMETYPE']=strtolower($matches[1]);
+                if(isset($ret["PARSED"][$i]['EXT']['BODY[HEADER.FIELDS (CONTENT-TYPE)]']['CONTENT'])) {
+                    if(preg_match('/^content-type: (.*);/iU', $ret["PARSED"][$i]['EXT']['BODY[HEADER.FIELDS (CONTENT-TYPE)]']['CONTENT'], $matches)) {
+                      $a['MIMETYPE']=strtolower($matches[1]);
+                    }
+                } elseif (isset($ret["PARSED"][$i]['EXT']['BODY[HEADER.FIELDS ("CONTENT-TYPE")]']['CONTENT'])) {
+                    // some versions of cyrus send "CONTENT-TYPE" and CONTENT-TYPE only
+                    if (preg_match('/^content-type: (.*);/iU', $ret["PARSED"][$i]['EXT']['BODY[HEADER.FIELDS ("CONTENT-TYPE")]']['CONTENT'], $matches)) {
+                        $a['MIMETYPE']=strtolower($matches[1]);
+                    }
                 }
                 $env[]=$a;
                 $a=null;
@@ -528,11 +536,6 @@ class Net_IMAP extends Net_IMAPProtocol {
               $this->_parseStructureMultipartArray($structurePart, $subMimeParts, $partID.$subPartID);
             } else {
               switch(strtoupper($structurePart[0])) {
-                case 'APPLICATION':
-                  $this->_parseStructureApplicationArray($structurePart, $subMimeParts, $partID.$subPartID);
-              
-                  break;
-
                  case 'IMAGE':
                   $this->_parseStructureImageArray($structurePart, $subMimeParts, $partID.$subPartID);
                   
@@ -1904,8 +1907,27 @@ class Net_IMAP extends Net_IMAPProtocol {
         return $ret["PARSED"]["SEARCH"]["SEARCH_LIST"];
     }
 
+    /*
+     * search function. Sends the SEARCH command
+     *
+     *
+     * @return bool Success/Failure
+     */
+    function sort($sort_list, $charset='US-ASCII', $search_list = '', $uidSort = false)
+    {
+        $sort_command = sprintf("(%s) %s %s", $sort_list, strtoupper($charset), $search_list);
 
+        if ($uidSort) {
+            $ret = $this->cmdUidSort($sort_command);
+        } else {
+            $ret = $this->cmdSort($sort_command);
+        }
 
+        if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
+            return new PEAR_Error($ret['RESPONSE']['CODE'] . ", " . $ret['RESPONSE']['STR_CODE']);
+        }
+        return $ret['PARSED']['SORT']['SORT_LIST'];
+    }
 
 
 

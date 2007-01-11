@@ -62,6 +62,19 @@ class Net_IMAPProtocol {
      */
     var $_socket = null;
 
+    /**
+     * The timeout for the connection to the IMAP server.
+     * @var int
+     */
+    var $_timeout = null;
+
+    /**
+     * The options for SSL/TLS connection 
+     * (see documentation for stream_context_create)
+     * @var array
+     */
+    var $_streamContextOptions = null;
+
      /**
      * To allow class debuging
      * @var boolean
@@ -153,7 +166,7 @@ class Net_IMAPProtocol {
         if( $this->_connected ){
             return new PEAR_Error( 'already connected, logout first!' );
         }
-        if ( PEAR::isError( $this->_socket->connect( $host , $port ) ) ) {
+        if (PEAR::isError($this->_socket->connect($host, $port, null, $this->_timeout, $this->_streamContextOptions))) {
             return new PEAR_Error( 'unable to open socket' );
         }
         if ( PEAR::isError( $this->_getRawResponse() ) ) {
@@ -363,12 +376,37 @@ class Net_IMAPProtocol {
         return $this->_unParsedReturn;
     }
 
+    /**
+     * set the options for a SSL/TLS connection 
+     * (see documentation for stream_context_create)
+     *
+     * @param  array  $options the options for the SSL/TLS connection
+     * @return nothing
+     *
+     * @access public
+     * @since  1.1
+     */
+    function setStreamContextOptions($options)
+    {
+        $this->_streamContextOptions = $options;
+    }
+
+    /**
+     * set the the timeout for the connection to the IMAP server.
+     *
+     * @param  int  $timeout the timeout
+     * @return nothing
+     *
+     * @access public
+     * @since  1.1
+     */
+    function setTimeout($timeout)
+    {
+        $this->_timeout = $timeout;
+    }
 
 
-
-
-
-     /**
+    /**
      * set the "returning of the unparsed response" feature on or off
      *
      * @param  boolean  $status: true: feature is on
@@ -1186,8 +1224,27 @@ class Net_IMAPProtocol {
     }
 
 
-
-
+    /**
+     * Send the SORT command.
+     *
+     * @return mixed Returns a PEAR_Error with an error message on any
+     *               kind of failure, or true on success.
+     * @access public
+     * @since  1.1
+     */
+    function cmdSort($sort_cmd)
+    {
+        /* 
+        if ($_charset != '' )
+            $_charset = "[$_charset] ";
+        $param = sprintf("%s%s",$charset,$search_cmd);
+        */
+        $ret = $this->_genericCommand('SORT', $sort_cmd);
+        if (isset($ret['PARSED'])) {
+            $ret['PARSED'] = $ret['PARSED'][0]['EXT'];
+        }
+        return $ret;
+    }
 
 
     /**
@@ -1351,13 +1408,22 @@ class Net_IMAPProtocol {
     }
 
 
-
-
-
-
-
-
-
+    /**
+     * Send the UID SORT command.
+     *
+     * @return mixed Returns a PEAR_Error with an error message on any
+     *               kind of failure, or true on success.
+     * @access public
+     * @since  1.1
+     */
+    function cmdUidSort($sort_cmd)
+    {
+        $ret=$this->_genericCommand('UID SORT', sprintf("%s",$sort_cmd));
+        if (isset($ret['PARSED'])) {
+            $ret["PARSED"]=$ret["PARSED"][0]["EXT"];
+        }
+        return $ret;
+    }
 
 
     /**
@@ -2540,6 +2606,11 @@ class Net_IMAPProtocol {
             return false;
             break;
 
+        case 'NOMODSEQ':
+            // ToDo: implement RFC 4551
+            return array($token=>'');
+            break;
+
         case "UID" :
 
         case "UIDNEXT" :
@@ -2725,13 +2796,15 @@ class Net_IMAPProtocol {
             break;
 
             case "SEARCH" :
+            case 'SORT':
                 $str_line = rtrim( substr( $this->_getToEOL( $str , false ) , 1) );
-                $struct_arr["SEARCH_LIST"] = explode( ' ' , $str_line );
-                if(count($struct_arr["SEARCH_LIST"]) == 1 && $struct_arr["SEARCH_LIST"][0]==''){
-                    $struct_arr["SEARCH_LIST"]=null;
+                $struct_arr[$token.'_LIST'] = explode(' ', $str_line);
+                if (count($struct_arr[$token.'_LIST']) == 1 && $struct_arr[$token.'_LIST'][0]=='') {
+                    $struct_arr[$token.'_LIST'] = null;
                 }
                 return array($token=>$struct_arr);
-            break;
+                break;
+
             case "OK" :
                 /* TODO:
                     parse the [ .... ] part of the response, use the method
