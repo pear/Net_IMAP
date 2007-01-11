@@ -18,10 +18,10 @@
  */
 
 /**
- * We use PHPUnit2 for testing
+ * We use PHPUnit3 for testing
  */
-require_once 'PHPUnit2/Framework/TestSuite.php';
-require_once 'PHPUnit2/TextUI/TestRunner.php';
+require_once 'PHPUnit/Framework/TestSuite.php';
+require_once 'PHPUnit/TextUI/TestRunner.php';
 
 
 /**
@@ -38,12 +38,12 @@ class testAll
 {
     public static function main() 
     {
-        PHPUnit2_TextUI_TestRunner::run(self::suite());
+        PHPUnit_TextUI_TestRunner::run(self::suite());
     }
 
     public static function suite() 
     {
-        $suite = new PHPUnit2_Framework_TestSuite('Net_IMAP TestSuite');
+        $suite = new PHPUnit_Framework_TestSuite('Net_IMAP TestSuite');
         $suite->addTestSuite('testIMAP');
         // add more testcases here
         return $suite;
