@@ -2660,47 +2660,50 @@ class Net_IMAPProtocol {
                 S: * QUOTA user.damian (STORAGE 1781460 4000000)
                 S: A0004 OK Completed
 
+            another example of QUOTA response from GETQUOTAROOT:
+                C: A0008 GETQUOTAROOT INBOX
+                S: * QUOTAROOT INBOX ""
+                S: * QUOTA "" (STORAGE 0 1024000 MESSAGE 0 40000)
+                S: A0008 OK GETQUOTAROOT finished.
+
             RFC 2087 section 5.1 says the list could be empty:
 
                 C: A0004 GETQUOTA user.damian
                 S: * QUOTA user.damian ()
                 S: A0004 OK Completed
+
+            quota_list      ::= "(" #quota_resource ")"
+            quota_resource  ::= atom SP number SP number
+            quota_response  ::= "QUOTA" SP astring SP quota_list
             */
+
             $mailbox = $this->_parseOneStringResponse( $str,__LINE__ , __FILE__ );
+            $ret_aux = array('MAILBOX'=>$this->utf_7_decode($mailbox));
+
             // courier fix
             if ($str[0].$str[1] == "\r\n") {
-                $ret_aux = array("MAILBOX"=>$this->utf_7_decode($mailbox) );
                 return array($token => $ret_aux);
             }
+            // end courier fix
+
             $this->_parseSpace( $str , __LINE__ , __FILE__ );
             $this->_parseString( $str , '(' , __LINE__ , __FILE__ );
 
-            $ret_aux = array("MAILBOX"=>$this->utf_7_decode($mailbox) );
-            $this->_getNextToken( $str , $quota_resp );
-            if ($quota_resp == ')' ) {
-                // empty list, apparently no STORAGE or MESSAGE quota set
-                return array($token => $ret_aux);
-            }
-            if( ( $ext = $this->_retrParsedResponse( $str , $quota_resp )) == false){
+            // fetching quota resources ( BNF ::= #quota_resource  but spce separated instead of comma)
+            $this->_getNextToken($str, $quota_resp );
+            while ($quota_resp != ')') {
+                if (($ext = $this->_retrParsedResponse($str, $quota_resp)) == false) {
                     $this->_prot_error("bogus response!!!!" , __LINE__ , __FILE__ );
+                }
+                $ret_aux=array_merge($ret_aux,$ext);
+
+                $this->_getNextToken($str, $quota_resp);
+                if ($quota_resp == ' ') {
+                    $this->_getNextToken($str, $quota_resp);
+                }
             }
-            $ret_aux=array_merge($ret_aux,$ext);
 
-            $this->_getNextToken( $str , $separator );
-            if( $separator == ')' ){
-                return array($token=>$ret_aux);
-            }
-
-
-            $this->_parseSpace( $str , __LINE__ , __FILE__ );
-
-            $this->_getNextToken( $str , $quota_resp );
-            if( ( $ext = $this->_retrParsedResponse( $str , $quota_resp )) == false){
-                    $this->_prot_error("bogus response!!!!" , __LINE__ , __FILE__ );
-            }
-            $ret_aux=array_merge($ret_aux,$ext);
-
-            $this->_parseString( $str , ')' , __LINE__ , __FILE__ );
+            // if empty list, apparently no STORAGE or MESSAGE quota set
             return array($token=>$ret_aux);
             break;
 
