@@ -302,6 +302,15 @@ class testIMAP extends PHPUnit_Framework_TestCase
         $this->logout();
     }
 
+    public function testGetStorageQuotaRoot()
+    {
+        $this->login();
+        $this->fixture->selectMailbox('INBOX');
+        $result = $this->fixture->getStorageQuotaRoot();
+        $this->assertTrue(!PEAR::isError($result), 'Can not get QuotaRoot');
+        $this->logout();
+    }
+
 }
 
 ?>
