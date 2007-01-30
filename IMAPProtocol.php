@@ -177,8 +177,8 @@ class Net_IMAPProtocol {
         if( $this->_connected ){
             return new PEAR_Error( 'already connected, logout first!' );
         }
-        if (PEAR::isError($this->_socket->connect($host, $port, null, $this->_timeout, $this->_streamContextOptions))) {
-            return new PEAR_Error( 'unable to open socket' );
+        if (PEAR::isError($error = $this->_socket->connect($host, $port, null, $this->_timeout, $this->_streamContextOptions))) {
+            return $error;
         }
         if ( PEAR::isError( $this->_getRawResponse() ) ) {
             return new PEAR_Error( 'unable to open socket' );
