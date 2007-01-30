@@ -28,21 +28,22 @@ require_once 'Net/Socket.php';
  */
 class Net_IMAPProtocol {
 
-
+    
     /**
-    * The auth methods this class support
-    * @var array
-    */
+     * The auth methods this class support
+     * @var array
+     */
     var $supportedAuthMethods=array('DIGEST-MD5', 'CRAM-MD5', 'LOGIN');
 
 
     /**
-    * The auth methods this class support
-    * @var array
-    */
+     * The auth methods this class support
+     * @var array
+     */
     var $supportedSASLAuthMethods=array('DIGEST-MD5', 'CRAM-MD5');
 
-     /**
+
+    /**
      * _serverAuthMethods
      * @var boolean
      */
@@ -62,11 +63,13 @@ class Net_IMAPProtocol {
      */
     var $_socket = null;
 
+
     /**
      * The timeout for the connection to the IMAP server.
      * @var int
      */
     var $_timeout = null;
+
 
     /**
      * The options for SSL/TLS connection 
@@ -75,53 +78,61 @@ class Net_IMAPProtocol {
      */
     var $_streamContextOptions = null;
 
-     /**
+
+    /**
      * To allow class debuging
      * @var boolean
      */
     var $_debug = false;
-
     var $dbgDialog = '';
 
-     /**
+
+    /**
+     * Print error messages
+     * @var boolean
+     */
+    var $printErrors = false;
+
+
+    /**
      * Command Number
      * @var int
      */
     var $_cmd_counter = 1;
 
 
-     /**
+    /**
      * Command Number for IMAP commands
      * @var int
      */
     var $_lastCmdID = 1;
 
-     /**
+
+    /**
      * Command Number
      * @var boolean
      */
     var $_unParsedReturn = false;
 
 
-
-     /**
+    /**
      * _connected: checks if there is a connection made to a imap server or not
      * @var boolean
      */
     var $_connected = false;
-     /**
+
+
+    /**
      * Capabilities
      * @var boolean
      */
     var $_serverSupportedCapabilities = null;
 
 
-
-     /**
+    /**
      * Use UTF-7 funcionallity
      * @var boolean
      */
-    //var $_useUTF_7 = false;
     var $_useUTF_7 = true;
 
 
@@ -245,6 +256,19 @@ class Net_IMAPProtocol {
         return $this->dbgDialog;
     }
 
+    /**
+     * Sets printed output of errors on or of
+     *
+     * @param   boolean true or false
+     * 
+     * @return  nothing
+     * @access  public
+     * @since   1.1
+     */
+    function setPrintErrors($printErrors = true)
+    {
+        $this->printErrors = $printErrors;
+    }
 
 
     /**
@@ -2516,27 +2540,26 @@ class Net_IMAPProtocol {
 
 
 
-
+    // ToDo: all real errors should be returned as PEAR error, others hidden by default
+    // NO extra output from this class!
     /**
-    * Utility funcion to display to console the protocol errors
-    *
-    * @param string the error
-    * @param int the line producing the error
-    * @param string file where the error was produced
-    *
-    * @return string containing  the error
-    * @access private
-    * @since  1.0
-    */
-    function _prot_error($str , $line , $file,$printError=true)
+     * Utility funcion to display to console the protocol errors
+     * printErrors() additionally has to be set to true
+     *
+     * @param string     $str   the error message
+     * @param int        $line  the line producing the error
+     * @param string     $file  file where the error was produced
+     *
+     * @return nothing
+     * @access private
+     * @since  1.0
+     */
+    function _prot_error($str , $line , $file, $printError = false)
     {
-        if($printError){
+        if ($printError && $this->printErrors) {
             echo "$line,$file,PROTOCOL ERROR!:$str\n";
         }
     }
-
-
-
 
 
 
@@ -2962,7 +2985,7 @@ class Net_IMAPProtocol {
     /*
     * Verifies that the next character IS a space
     */
-    function _parseSpace(&$str,$line,$file, $printError = true)
+    function _parseSpace(&$str,$line,$file)
     {
     /*
         This code repeats a lot in this class
@@ -3072,7 +3095,6 @@ class Net_IMAPProtocol {
         }//While
         // OK we finish the UNTAGGED Response now we must parse the FINAL TAGGED RESPONSE
         //TODO: make this a litle more elegant!
-
         $this->_parseSpace( $str , __LINE__ , __FILE__, false );
 
         $this->_getNextToken( $str , $cmd_status );
