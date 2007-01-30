@@ -2985,7 +2985,7 @@ class Net_IMAPProtocol {
     /*
     * Verifies that the next character IS a space
     */
-    function _parseSpace(&$str,$line,$file)
+    function _parseSpace(&$str, $line, $file, printError = false)
     {
     /*
         This code repeats a lot in this class
