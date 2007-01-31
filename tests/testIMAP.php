@@ -311,6 +311,14 @@ class testIMAP extends PHPUnit_Framework_TestCase
         $this->logout();
     }
 
+    public function testGetACL()
+    {
+        $this->login();
+        $result = $this->fixture->getACL();
+        $this->assertTrue(!PEAR::isError($result), 'Can not get ACL');
+        $this->logout();
+    }
+
 }
 
 ?>
