@@ -91,7 +91,7 @@ class Net_IMAPProtocol {
      * Print error messages
      * @var boolean
      */
-    var $printErrors = false;
+    var $_printErrors = false;
 
 
     /**
@@ -267,7 +267,7 @@ class Net_IMAPProtocol {
      */
     function setPrintErrors($printErrors = true)
     {
-        $this->printErrors = $printErrors;
+        $this->_printErrors = $printErrors;
     }
 
 
@@ -2554,9 +2554,9 @@ class Net_IMAPProtocol {
      * @access private
      * @since  1.0
      */
-    function _prot_error($str , $line , $file, $printError = false)
+    function _prot_error($str , $line , $file, $printError = true)
     {
-        if ($printError && $this->printErrors) {
+        if ($this->_printErrors && $printError) {
             echo "$line,$file,PROTOCOL ERROR!:$str\n";
         }
     }
@@ -2915,17 +2915,27 @@ class Net_IMAPProtocol {
                 return $result_array;
             break;
 
-        case "ACL" :
-                $this->_parseSpace( $str , __LINE__ , __FILE__ );
-                $this->_getNextToken( $str , $mailbox );
-                $this->_parseSpace( $str , __LINE__ , __FILE__ );
-                $acl_arr = explode( ' ' , rtrim( substr( $this->_getToEOL( $str , false ) , 0 ) ) );
-
-                for( $i = 0 ; $i < count( $acl_arr ) ; $i += 2 ){
-                    $arr[] = array( "USER"=>$acl_arr[$i] , "RIGHTS"=>$acl_arr[ $i + 1 ] );
+        case 'ACL':
+                /*
+                RFC 4314:
+                acl-data        = "ACL" SP mailbox *(SP identifier SP rights)
+                identifier      = astring
+                rights          = astring ;; only lowercase ASCII letters and digits are allowed.
+                */
+                //$str = " INBOX\r\nA0006 OK Completed\r\n";
+                $this->_parseSpace($str, __LINE__, __FILE__);
+                $this->_getNextToken($str, $mailbox);
+                
+                $arr = array();
+                while (substr($str, 0, 2) != "\r\n") {
+                    $this->_parseSpace($str, __LINE__, __FILE__);
+                    $this->_getNextToken($str, $acl_user);
+                    $this->_parseSpace($str, __LINE__, __FILE__);
+                    $this->_getNextToken($str, $acl_rights);
+                    $arr[] = array('USER'=>$acl_user, 'RIGHTS'=>$acl_rights);
                 }
 
-                $result_array = array( "MAILBOX"=>$this->utf_7_decode($mailbox) , "USERS"=>$arr );
+                $result_array = array('MAILBOX'=>$this->utf_7_decode($mailbox), 'USERS'=>$arr);
                 return $result_array;
             break;
 
@@ -2985,7 +2995,7 @@ class Net_IMAPProtocol {
     /*
     * Verifies that the next character IS a space
     */
-    function _parseSpace(&$str, $line, $file, printError = false)
+    function _parseSpace(&$str, $line, $file, $printError = true)
     {
     /*
         This code repeats a lot in this class
@@ -3028,59 +3038,58 @@ class Net_IMAPProtocol {
             $unparsed_str = $str;
         }
 
-        $this->_getNextToken( $str , $token );
+        $this->_getNextToken($str, $token);
 
-        while( $token != $cmdid && $str != '' ){
-        if($token == "+" ){
-        //if the token  is + ignore the line
-        // TODO: verify that this is correct!!!
-            $this->_getToEOL( $str );
-            $this->_getNextToken( $str , $token );
-        }
+        while ($token != $cmdid && $str != '') {
+            if ($token == '+' ) {
+                //if the token  is + ignore the line
+                // TODO: verify that this is correct!!!
+                $this->_getToEOL($str);
+                $this->_getNextToken($str, $token);
+            }
 
-            $this->_parseString( $str , ' ' , __LINE__ , __FILE__ );
+            $this->_parseString($str, ' ', __LINE__, __FILE__);
 
-            $this->_getNextToken( $str , $token );
-        if( $token == '+' ){
-            $this->_getToEOL( $str );
-            $this->_getNextToken( $str , $token );
-        }else
-            if( is_numeric( $token ) ){
-                // The token is a NUMBER so I store it
-                $msg_nro = $token;
-                $this->_parseSpace( $str , __LINE__ , __FILE__ );
+            $this->_getNextToken($str, $token);
+            if ($token == '+') {
+                $this->_getToEOL($str);
+                $this->_getNextToken($str, $token);
+            } else {
+                if (is_numeric($token)) {
+                    // The token is a NUMBER so I store it
+                    $msg_nro = $token;
+                    $this->_parseSpace($str, __LINE__, __FILE__);
 
-                // I get the command
-                $this->_getNextToken( $str , $command );
-
-                if( ( $ext_arr = $this->_retrParsedResponse( $str , $command, $msg_nro ) ) == false ){
-                //  if this bogus response cis a FLAGS () or EXPUNGE response
-                // the ignore it
-                    if( $command != 'FLAGS' && $command != 'EXPUNGE' ){
-                        $this->_prot_error("bogus response!!!!" , __LINE__ , __FILE__, false);
+                    // I get the command
+                    $this->_getNextToken($str, $command);
+ 
+                    if (($ext_arr = $this->_retrParsedResponse($str, $command, $msg_nro)) == false) {
+                        //  if this bogus response cis a FLAGS () or EXPUNGE response
+                        // the ignore it
+                        if ($command != 'FLAGS' && $command != 'EXPUNGE') {
+                            $this->_prot_error("bogus response!!!!" , __LINE__ , __FILE__, false);
+                        }
                     }
+                    $result_array[] = array('COMMAND'=>$command, 'NRO'=>$msg_nro, 'EXT'=>$ext_arr);
+                } else {
+                    // OK the token is not a NUMBER so it MUST be a COMMAND
+                    $command = $token;
+
+                    /* Call the parser return the array
+                        take care of bogus responses!
+                    */
+
+                    if (($ext_arr = $this->_retrParsedResponse($str, $command)) == false) {
+                        $this->_prot_error("bogus response!!!! (COMMAND:$command)", __LINE__, __FILE__);
+                    }
+                    $result_array[] = array('COMMAND'=>$command, 'EXT'=>$ext_arr);
                 }
-                $result_array[] = array( "COMMAND"=>$command , "NRO"=>$msg_nro , "EXT"=>$ext_arr );
-            }else{
-                // OK the token is not a NUMBER so it MUST be a COMMAND
-                $command = $token;
-
-                /* Call the parser return the array
-                    take care of bogus responses!
-                */
-
-                if( ( $ext_arr = $this->_retrParsedResponse( $str , $command ) ) == false ){
-                    $this->_prot_error( "bogus response!!!! (COMMAND:$command)" , __LINE__ , __FILE__ );
-                }
-                $result_array[] = array( "COMMAND"=>$command , "EXT"=>$ext_arr );
-
-
             }
 
 
-            $this->_getNextToken( $str , $token );
+            $this->_getNextToken($str, $token);
 
-            $token = strtoupper( $token );
+            $token = strtoupper($token);
             if( $token != "\r\n" && $token != '' ){
                 $this->_prot_error("PARSE ERROR!!! must be a '\\r\\n' here  but is a '$token'!!!! (getting the next line)|STR:|$str|" , __LINE__ , __FILE__ );
             }
