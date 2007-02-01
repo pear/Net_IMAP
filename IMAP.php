@@ -35,19 +35,15 @@ class Net_IMAP extends Net_IMAPProtocol {
      * Instantiates a new Net_SMTP object, overriding any defaults
      * with parameters that are passed in.
      *
-     * @param string The server to connect to.
-     * @param int The port to connect to.
-     * @param string The value to give when sending EHLO or HELO.
+     * @param   string  The server to connect to.
+     * @param   int     The port to connect to.
+     * @param   string  The value to give when sending EHLO or HELO.
      */
-
     function Net_IMAP($host = 'localhost', $port = 143)
     {
         $this->Net_IMAPProtocol();
         $ret = $this->connect( $host , $port );
     }
-
-
-
 
 
 
@@ -61,8 +57,8 @@ class Net_IMAP extends Net_IMAPProtocol {
      *          because the contructor already makes this job
      * @return true on success or PEAR_Error
      *
-     * @access public
-     * @since  1.0
+     * @access  public
+     * @since   1.0
      */
     function connect($host, $port)
     {
@@ -71,7 +67,7 @@ class Net_IMAP extends Net_IMAPProtocol {
             // Determine server capabilities
             $res = $this->cmdCapability();
 
-            // check if we can enable TLS via STARTTLS
+            // check if we can enable TLS via STARTTLS (requires PHP 5 >= 5.1.0RC1 for stream_socket_enable_crypto)
             if ($this->hasCapability('STARTTLS') === true && $useTLS === true && function_exists('stream_socket_enable_crypto') === true) {
                 if (PEAR::isError($res = $this->cmdStartTLS())) {
                     return $res;
@@ -96,29 +92,21 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-
-
-
     /**
      * Attempt to authenticate to the IMAP server.
-     * @param string $user The userid to authenticate as.
-     * @param string $pass The password to authenticate with.
-     * @param string $useauthenticate true: authenticate using
+     * @param   string  $user The userid to authenticate as.
+     * @param   string  $pass The password to authenticate with.
+     * @param   string  $useauthenticate true: authenticate using
      *        the IMAP AUTHENTICATE command. false: authenticate using
      *        the IMAP AUTHENTICATE command. 'string': authenticate using
      *        the IMAP AUTHENTICATE command but using the authMethod in 'string'
-     * @param boolean $selectMailbox automaticaly select inbox on login (false does not)
+     * @param   boolean $selectMailbox automaticaly select inbox on login (false does not)
      *
-     * @return true on success or PEAR_Error
+     * @return  true on success or PEAR_Error
      *
-     * @access public
-     * @since  1.0
+     * @access  public
+     * @since   1.0
      */
-
     function login($user, $pass, $useauthenticate = true, $selectMailbox=true)
     {
         if ( $useauthenticate ){
@@ -171,13 +159,16 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-    /*
-    * Disconnect function. Sends the QUIT command
-    * and closes the socket.
-    *
-    * @return bool Success/Failure
-    */
+    /**
+     * Disconnect function. Sends the QUIT command
+     * and closes the socket.
+     *
+     * @param   boolean $expungeOnExit (default = false)
+     *
+     * @return  mixed   true on success / Pear_Error on failure
+     *
+     * @access  public
+     */
     function disconnect($expungeOnExit = false)
     {
         if($expungeOnExit){
@@ -197,16 +188,15 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-     /*
-    * Changes  the default/current mailbox th $mailbox
-    *
-    *
-    * @return bool Success/Pear_Error Failure
-    */
+    /**
+     * Changes the default/current mailbox to $mailbox
+     *
+     * @param   string  $mailbox    Mailbox to select
+     *
+     * @return  mixed   true on success / Pear_Error on failure
+     *
+     * @access  public
+     */
     function selectMailbox($mailbox)
     {
         $ret=$this->cmdSelect($mailbox);
@@ -218,16 +208,15 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-     /*
-    * Checks  the mailbox $mailbox
-    *
-    *
-    * @return bool Success/Pear_Error Failure
-    */
+    /**
+     * Checks the mailbox $mailbox
+     *
+     * @param   string  $mailbox    Mailbox to examine
+     *
+     * @return  mixed   true on success / Pear_Error on failure
+     *
+     * @access  public
+     */
     function examineMailbox($mailbox)
     {
         $ret=$this->cmdExamine($mailbox);
@@ -243,18 +232,17 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-
-    /*
-    * Returns the raw headers of the specified message.
-    *
-    * @param  $msg_id Message number
-    * @param  bool $uidFetch msg_id contains UID's instead of Message Sequence Number if set to true
-    * @return mixed   Either raw headers or false on error
-    */
+    /**
+     * Returns the raw headers of the specified message.
+     *
+     * @param   int     $msg_id     Message number
+     * @param   $part_id    Part ID
+     * @param   boolean $uidFetch   msg_id contains UID's instead of Message Sequence Number if set to true
+     *
+     * @return  mixed   Either raw headers or false on error
+     *
+     * @access  public
+     */
     function getRawHeaders($msg_id, $part_id = '', $uidFetch = false)
     {
         if($part_id != '') {
@@ -276,20 +264,22 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-    /*
+    /**
      * Returns the  headers of the specified message in an
      * associative array. Array keys are the header names, array
      * values are the header values. In the case of multiple headers
      * having the same names, eg Received:, the array value will be
      * an indexed array of all the header values.
      *
-     * @param  int      $msg_id         Message number
-     * @param  boolean  $keysToUpper    false (default) original header names
+     * @param   int     $msg_id         Message number
+     * @param   boolean $keysToUpper    false (default) original header names
      *                                  true change keys (header names) toupper
-     * @param  bool	$uidFetch 	msg_id contains UID's instead of Message Sequence Number if set to true
+     * @param   $part_id    Part ID
+     * @param   boolean $uidFetch       msg_id contains UID's instead of Message Sequence Number if set to true
      *
-     * @return mixed    Either array of headers or false on error
+     * @return  mixed   Either array of headers or false on error
+     *
+     * @access  public
      */
     function getParsedHeaders($msg_id, $keysToUpper = false, $part_id = '', $uidFetch = false)
     {
@@ -317,17 +307,18 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-    /*
-    * Returns an array containing the message ID, the size and the UID
-    * of each message selected.
-    * message selection can be a valid IMAP command, a number or an array of
-    * messages
-    *
-    * @param  $msg_id Message number
-    * @return mixed   Either array of message data or PearError on error
-    */
-
+    /**
+     * Returns an array containing the message ID, the size and the UID
+     * of each message selected.
+     * message selection can be a valid IMAP command, a number or an array of
+     * messages
+     *
+     * @param   $msg_id Message number
+     *
+     * @return  mixed   Either array of message data or PearError on error
+     *
+     * @access  public
+     */
     function getMessagesList($msg_id = null)
     {
         if( $msg_id != null){
@@ -349,11 +340,17 @@ class Net_IMAP extends Net_IMAPProtocol {
         return $ret_aux;
     }
 
-    /*
-     * @param  mixed      $msg_id         Message number
-     * @param  bool	$uidFetch 	msg_id contains UID's instead of Message Sequence Number if set to true
+
+
+    /**
+     * Message summary
      *
-     * @return mixed    Either array of headers or PEAR::Error on error
+     * @param   mixed   $msg_id     Message number
+     * @param   boolean	$uidFetch 	msg_id contains UID's instead of Message Sequence Number if set to true
+     *
+     * @return  mixed   Either array of headers or PEAR::Error on error
+     *
+     * @access  public
      */
     function getSummary($msg_id = null, $uidFetch = false)
     {
@@ -407,17 +404,16 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-    /*
-    * Returns the body of the message with given message number.
-    *
-    * @param  $msg_id Message number
-    * @param  bool  $uidFetch  msg_id contains UID's instead of Message Sequence Number if set to true
-    * @return mixed   Either message body or false on error
-    */
+    /**
+     * Returns the body of the message with given message number.
+     *
+     * @param   $msg_id Message number
+     * @param   boolean $uidFetch  msg_id contains UID's instead of Message Sequence Number if set to true
+     *
+     * @return  mixed   Either message body or false on error
+     *
+     * @access  public
+     */
     function getBody($msg_id, $uidFetch = false)
     {
         if($uidFetch) {
@@ -434,14 +430,17 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
-    /*
-    * Returns the body of the message with given message number.
-    *
-    * @param  $msg_id Message number
-    * @param  string $partId Message number
-    * @param  bool  $uidFetch  msg_id contains UID's instead of Message Sequence Number if set to true
-    * @return mixed   Either message body or false on error
-    */
+    /**
+     * Returns the body of the message with given message number.
+     *
+     * @param   $msg_id Message number
+     * @param   string  $partId Message number
+     * @param   boolean $uidFetch  msg_id contains UID's instead of Message Sequence Number if set to true
+     *
+     * @return  mixed   Either message body or false on error
+     *
+     * @access  public
+     */
     function getBodyPart($msg_id, $partId, $uidFetch = false)
     {
         if($uidFetch) {
@@ -458,13 +457,17 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
-    /*
-    * Returns the body of the message with given message number.
-    *
-    * @param  $msg_id Message number
-    * @param  bool  $uidFetch  msg_id contains UID's instead of Message Sequence Number if set to true
-    * @return mixed   Either message body or false on error
-    */
+
+    /**
+     * Returns the body of the message with given message number.
+     *
+     * @param   $msg_id Message number
+     * @param   boolean $uidFetch  msg_id contains UID's instead of Message Sequence Number if set to true
+     *
+     * @return  mixed   Either message body or false on error
+     *
+     * @access  public
+     */
     function getStructure($msg_id, $uidFetch = false)
     {
         #print "IMAP.php::getStructure<pre>";
@@ -488,6 +491,18 @@ class Net_IMAP extends Net_IMAPProtocol {
         return array_shift($mimeParts);
     }
 
+
+    /**
+     * Parse structure array
+     *
+     * @param   $_structure
+     * @param   &$_mimeParts
+     * @param   $_partID
+     *
+     * @return  nothing
+     *
+     * @access  private
+     */
     function _parseStructureArray($_structure, &$_mimeParts, $_partID = '') 
     {
         // something went wrong
@@ -517,6 +532,20 @@ class Net_IMAP extends Net_IMAPProtocol {
         
     }
     
+
+
+    /**
+     * Parse multibpart structure array
+     *
+     * @param   $_structure
+     * @param   &$_mimeParts
+     * @param   $_partID
+     * @param   boolean $_parentIsMessage
+     *
+     * @return  noting
+     *
+     * @access  private
+     */
     function _parseStructureMultipartArray($_structure, &$_mimeParts, $_partID, $_parentIsMessage = false) 
     {
         #print "Net_IMAP::_parseStructureMultipartArray _partID: $_partID<br>";
@@ -573,6 +602,19 @@ class Net_IMAP extends Net_IMAPProtocol {
         }
     }
     
+
+
+    /**
+     * Parse structure image array
+     *
+     * @param   $_structure
+     * @param   &$_mimeParts
+     * @param   $_partID
+     *
+     * @return  noting
+     *
+     * @access  private
+     */
     function _parseStructureImageArray($_structure, &$_mimeParts, $_partID) 
     {
         #print "Net_IMAP::_parseStructureImageArray _partID: $_partID<br>";
@@ -583,6 +625,19 @@ class Net_IMAP extends Net_IMAPProtocol {
         $_mimeParts[$_partID] = $part;
     }
 
+
+    
+    /**
+     * Parse structure application array
+     *
+     * @params  $_structure
+     * @params  &$_mimeParts
+     * @params  $_partID
+     *
+     * @return  noting
+     *
+     * @access  private
+     */
     function _parseStructureApplicationArray($_structure, &$_mimeParts, $_partID) 
     {
         #print "Net_IMAP::_parseStructureApplicationArray _partID: $_partID<br>";
@@ -604,6 +659,19 @@ class Net_IMAP extends Net_IMAPProtocol {
         $_mimeParts[$_partID] = $part;
     }
 
+
+
+    /**
+     * Parse structure message array
+     *
+     * @params  $_structure
+     * @params  &$_mimeParts
+     * @params  $_partID
+     *
+     * @return  nothing
+     *
+     * @access  private
+     */
     function _parseStructureMessageArray($_structure, &$_mimeParts, $_partID)
     {
         #print "Net_IMAP::_parseStructureMessageArray _partID: $_partID<br>";
@@ -623,6 +691,19 @@ class Net_IMAP extends Net_IMAPProtocol {
         $_mimeParts[$_partID] = $part;
     }
     
+
+
+    /**
+     * Parse structure test array
+     *
+     * @params  $_structure
+     * @params  &$_mimeParts
+     * @params  $_partID
+     *
+     * @return  nothing
+     *
+     * @access  private
+     */
     function _parseStructureTextArray($_structure, &$_mimeParts, $_partID) 
     {
         #print "Net_IMAP::_parseStructureTextArray _partID: $_partID<br>";
@@ -645,6 +726,17 @@ class Net_IMAP extends Net_IMAPProtocol {
         $_mimeParts[$_partID] = $part;
     }
 
+
+
+    /**
+     * Parse structure common fields
+     *
+     * @param   &$_structure
+     *
+     * @return  object  part object (stdClass)
+     *
+     * @access  private
+     */
     function _parseStructureCommonFields(&$_structure) 
     {
         #print "Net_IMAP::_parseStructureTextArray _partID: $_partID<br>";
@@ -664,12 +756,18 @@ class Net_IMAP extends Net_IMAPProtocol {
         return $part;
     }
 
-    /*
-    * Returns the entire message with given message number.
-    *
-    * @param  $msg_id Message number
-    * @return mixed   Either entire message or false on error
-    */
+
+
+    /**
+     * Returns the entire message with given message number.
+     *
+     * @param   $msg_id Message number (default = null)
+     * @param   boolean $indexIsMessageNumber (default = true)
+     *
+     * @return  mixed   Either entire message or false on error
+     *
+     * @access  public
+     */
     function getMessages($msg_id = null, $indexIsMessageNumber=true)
     {
         //$resp=$this->cmdFetch($msg_id,"(BODY[TEXT] BODY[HEADER])");
@@ -704,20 +802,15 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-
-
-
-
-    /*
-    * Returns number of messages in this mailbox
-    *
-    * @param  string $mailbox  the mailbox
-    * @return mixed Either number of messages or Pear_Error on error
-    */
+    /**
+     * Returns number of messages in this mailbox
+     *
+     * @param   string  $mailbox    the mailbox (default is current mailbox)
+     *
+     * @return  mixed   Either number of messages or Pear_Error on failure
+     *
+     * @access  public
+     */
     function getNumberOfMessages($mailbox = '')
     {
         if ( $mailbox == '' || $mailbox == null ){
@@ -740,12 +833,16 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
-    /*
-    * Returns number of UnSeen messages in this mailbox
-    *
-    * @param  string $mailbox  the mailbox
-    * @return mixed Either number of messages or Pear_Error on error
-    */
+
+    /**
+     * Returns number of UnSeen messages in this mailbox
+     *
+     * @param   string  $mailbox    the mailbox (default is current mailbox)
+     *
+     * @return  mixed   Either number of messages or Pear_Error on failure
+     *
+     * @access  public
+     */
     function getNumberOfUnSeenMessages($mailbox = '')
     {
         if ( $mailbox == '' ){
@@ -767,12 +864,17 @@ class Net_IMAP extends Net_IMAPProtocol {
         return 0;
     }
 
-    /*
-    * Returns number of UnSeen messages in this mailbox
-    *
-    * @param  string $mailbox  the mailbox
-    * @return mixed Either number of messages or Pear_Error on error
-    */
+
+
+    /**
+     * Returns number of UnSeen messages in this mailbox
+     *
+     * @param   string  $mailbox    the mailbox (default is current mailbox)
+     *
+     * @return  mixed   Either number of messages or Pear_Error on failure
+     *
+     * @access  public
+     */
     function getNumberOfRecentMessages($mailbox = '')
     {
         if ( $mailbox == '' ){
@@ -794,12 +896,17 @@ class Net_IMAP extends Net_IMAPProtocol {
         return 0;
     }
 
-    /*
-    * Returns number of UnSeen messages in this mailbox
-    *
-    * @param  string $mailbox  the mailbox
-    * @return mixed Either number of messages or Pear_Error on error
-    */
+
+
+    /**
+     * Returns number of UnSeen messages in this mailbox
+     *
+     * @param   string  $mailbox    the mailbox (default is current mailbox)
+     *
+     * @return  mixed   Either number of messages or Pear_Error on error
+     *
+     * @access  public
+     */
     function getStatus($mailbox = '')
     {
         if ( $mailbox == '' ){
@@ -817,18 +924,17 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-    /*
-    * Returns an array containing the message envelope
-    *
-    * @todo $mailbox get's not used anywhere
-    * @param  mixed $msg_id Message number
-    * @param  bool  $uidFetch  msg_id contains UID's instead of Message Sequence Number if set to true
-    * @return mixed Either the envelopes or Pear_Error on error
-    */
+    /**
+     * Returns an array containing the message envelope
+     *
+     * @param   $mailbox    get's not used anywhere (will be removed with next major release)
+     * @param   mixed   $msg_id     Message number (default = null)
+     * @param   boolean $uidFetch   msg_id contains UID's instead of Message Sequence Number if set to true
+     *
+     * @return  mixed   Either the envelopes or Pear_Error on error
+     *
+     * @access public
+     */
     function getEnvelope($mailbox = '', $msg_id = null, $uidFetch = false)
     {
         if ( $mailbox == '' ){
@@ -871,19 +977,18 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-
-
-    /*
-    * Returns the sum of all the sizes of messages in $mailbox
-    *           WARNING!!!  The method's performance is not good
-    *                       if you have a lot of messages in the mailbox
-    *                       Use with care!
-    * @return mixed Either size of maildrop or false on error
-    */
+    /**
+     * Returns the sum of all the sizes of messages in $mailbox
+     *           WARNING!!!  The method's performance is not good
+     *                       if you have a lot of messages in the mailbox
+     *                       Use with care!
+     *
+     * @params  string  $mailbox    the mailbox (default is current mailbox)
+     *
+     * @return  mixed   Either size of maildrop or false on error
+     *
+     * @access  public
+     */
     function getMailboxSize($mailbox = '')
     {
 
@@ -932,26 +1037,18 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-    /*
-    * Marks a message for deletion. Only will be deleted if the
-    * disconnect() method is called with auto-expunge on true or expunge()
-    * method is called.
-    *
-    * @param  $msg_id Message to delete
-    * @param  bool $uidStore msg_id contains UID's instead of Message Sequence Number if set to true
-    * @return bool Success/Failure
-    */
+    /**
+     * Marks a message for deletion. Only will be deleted if the
+     * disconnect() method is called with auto-expunge on true or expunge()
+     * method is called.
+     *
+     * @param   $msg_id Message to delete (default = null)
+     * @param   boolean $uidStore msg_id contains UID's instead of Message Sequence Number if set to true (default = false)
+     *
+     * @return  mixed   true on success / Pear_Error on failure
+     *
+     * @access  public
+     */
     function deleteMessages($msg_id = null, $uidStore = false)
     {
         /* As said in RFC2060...
@@ -989,27 +1086,22 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-
-
     /**
-    * Copies mail from one folder to another
-    *
-    * @param string $dest_mailbox       mailbox name to copy sessages to
-    * @param mixed $msg_id              the messages that I want to copy (all by default) it also
-    *                                     can be an array
-    * @param string $source_mailbox     mailbox name from where the messages are copied
-    * @param bool $uidCopy              msg_id contains UID's instead of Message Sequence Number if set to true
-    *
-    * @return mixed true on Success/PearError on Failure
-    * @since 1.0
-    */
+     * Copies mail from one folder to another
+     *
+     * @param   string  $dest_mailbox   mailbox name to copy sessages to
+     * @param   mixed   $msg_id         the messages that I want to copy (all by default) it also
+     *                                     can be an array
+     * @param   string  $source_mailbox mailbox name from where the messages are copied (default is current mailbox)
+     * @param   bool    $uidCopy        msg_id contains UID's instead of Message Sequence Number if set to true
+     *
+     * @return mixed true on Success/PearError on Failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function copyMessages($dest_mailbox, $msg_id = null , $source_mailbox = null, $uidCopy = false )
     {
-
         if($source_mailbox == null){
             $source_mailbox = $this->getCurrentMailbox();
         }else{
@@ -1042,25 +1134,18 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-
-
-
-
-
-
     /**
-    * Appends a mail to  a mailbox
-    *
-    * @param string $rfc_message    the message to append in RFC822 format
-    * @param string $mailbox        mailbox name to append to
-    *
-    * @return mixed true on Success/PearError on Failure
-    * @since 1.0
-    */
+     * Appends a mail to  a mailbox
+     *
+     * @param   string  $rfc_message    the message to append in RFC822 format
+     * @param   string  $mailbox        mailbox name to append to (default is current mailbox)
+     * @param   string  $flags_list     set flags appended message
+     *
+     * @return  mixed   true on success / Pear_Error on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function appendMessage($rfc_message, $mailbox = null , $flags_list = '')
     {
         if($mailbox == null){
@@ -1074,15 +1159,15 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+
     /**
-    * Appends a mail to  a mailbox
-    *
-    * @param string $rfc_message    the message to append in RFC822 format
-    * @param string $mailbox        mailbox name to append to
-    *
-    * @return mixed true on Success/PearError on Failure
-    * @since 1.0
-    */
+     * Get the namespace
+     *
+     * @return  mixed   namespaces or PearError on failure
+     *
+     * @access  public
+     * @since   1.1
+     */
     function getNamespace()
     {
         $ret=$this->cmdNamespace();
@@ -1091,30 +1176,20 @@ class Net_IMAP extends Net_IMAPProtocol {
         }
 
         foreach($ret["PARSED"]["NAMESPACES"] as $type => $singleNameSpace) {
-          if(is_array($singleNameSpace)) {
-            foreach ($singleNameSpace as $nameSpaceData) {
-              $nameSpaces[$type][] = array(
-                'name'		=> $this->utf_7_decode($nameSpaceData[0]),
-                'delimter'	=> $this->utf_7_decode($nameSpaceData[1])
-              );
+            if(!is_array($singleNameSpace)) {
+                continue;
             }
-          }
+
+            foreach ($singleNameSpace as $nameSpaceData) {
+                $nameSpaces[$type][] = array(
+                    'name'		=> $this->utf_7_decode($nameSpaceData[0]),
+                    'delimter'	=> $this->utf_7_decode($nameSpaceData[1])
+                );
+            }
         }
         
         return $nameSpaces;
     }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1124,20 +1199,17 @@ class Net_IMAP extends Net_IMAPProtocol {
     **                                                               **
     ******************************************************************/
 
-
-
-
-
     /**
-    * Gets the HierachyDelimiter character used to create subfolders  cyrus users "."
-    *   and wu-imapd uses "/"
-    *
-    * $param  string  the mailbox to get the hierarchy from
-    * @return string  the hierarchy delimiter
-    *
-    * @access public
-    * @since  1.0
-    */
+     * Gets the HierachyDelimiter character used to create subfolders  cyrus users "."
+     *   and wu-imapd uses "/"
+     *
+     * $param   string  the mailbox to get the hierarchy from
+     *
+     * @return  string  the hierarchy delimiter
+     *
+     * @access  public
+     * @since   1.0
+     */
     function getHierarchyDelimiter( $mailbox = '' )
     {
 
@@ -1161,27 +1233,21 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-
     /**
-    * Returns an array containing the names of the selected mailboxes
-    *
-    * @param string $mailbox_base         base mailbox to start the search
-    *                   $mailbox_base     if $mailbox_base == ''     then $mailbox_base is the curent selected mailbox
-    * @param string $restriction_search   false or 0 means return all mailboxes  true or 1 return only the mailbox that contains that exact name
-                                            2  return all mailboxes in that hierarchy level
-    * @param string $returnAttributes     true means return an assoc array containing mailbox names and mailbox attributes
-                                          false - the default - means return an array of mailboxes
-    *
-    * @return mixed true on Success/PearError on Failure
-    * @since 1.0
-    */
-
-
-
+     * Returns an array containing the names of the selected mailboxes
+     *
+     * @param   string  $reference          base mailbox to start the search (default is current mailbox)
+     * @param   string  $restriction_search false or 0 means return all mailboxes
+     *                                      true or 1 return only the mailbox that contains that exact name
+     *                                      2 return all mailboxes in that hierarchy level
+     * @param   string  $returnAttributes   true means return an assoc array containing mailbox names and mailbox attributes
+     *                                      false - the default - means return an array of mailboxes
+     *
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function getMailboxes($reference = ''  , $restriction_search = 0, $returnAttributes=false )
     {
 
@@ -1241,17 +1307,16 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
     /**
-    * check if the mailbox name exists
-    *
-    * @param string $mailbox     mailbox name to check existance
-    *
-    * @return boolean true on Success/false on Failure
-    * @since 1.0
-    */
-
+     * check if the mailbox name exists
+     *
+     * @param   string  $mailbox    mailbox name to check existance
+     *
+     * @return  mixed   boolean true/false or PEAR_Error on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function mailboxExist($mailbox)
     {
         // true means do an exact match
@@ -1270,19 +1335,17 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
     /**
-    * Creates the mailbox $mailbox
-    *
-    * @param string $mailbox     mailbox name to create
-    * @param array  $options     options to pass to create
-    *
-    * @return mixed true on Success/PearError on Failure
-    * @since 1.0
-    */
+     * Creates the mailbox $mailbox
+     *
+     * @param   string  $mailbox    mailbox name to create
+     * @param   array   $options    options to pass to create (default is no options)
+     *
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function createMailbox($mailbox, $options = null)
     {
         $ret=$this->cmdCreate($mailbox, $options);
@@ -1295,16 +1358,19 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
     /**
-    * Deletes the mailbox $mailbox
-    *
-    * @param string $mailbox     mailbox name to delete
-    *
-    * @return mixed true on Success/PearError on Failure
-    * @since 1.0
-    */
+     * Deletes the mailbox $mailbox
+     *
+     * @param   string  $mailbox    mailbox name to delete
+     *
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function deleteMailbox($mailbox)
     {
     // TODO verificar que el mailbox se encuentra vacio y, sino borrar los mensajes antes~!!!!!!
+    // ToDo find someone who can translate the above todo
         $ret=$this->cmdDelete($mailbox);
         if (PEAR::isError($ret)) {
             return $ret;
@@ -1314,24 +1380,21 @@ class Net_IMAP extends Net_IMAPProtocol {
         }
         return true;
     }
-
-
-
-
-
-
-
-
-
+    
+    
+    
     /**
-    * Renames the mailbox $mailbox
-    *
-    * @param string $mailbox     mailbox name to rename
-    * @param array  $options     options to pass to rename
-    *
-    * @return mixed true on Success/PearError on Failure
-    * @since 1.0
-    */
+     * Renames the mailbox $mailbox
+     *
+     * @param   string  $oldmailbox mailbox name to rename
+     * @param   string  $newmailbox new name for the mailbox
+     * @param   array   $options    options to pass to rename
+     *
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function renameMailbox($oldmailbox, $newmailbox, $options = null)
     {
         $ret=$this->cmdRename($oldmailbox,$newmailbox,$options);
@@ -1344,29 +1407,22 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-
     /******************************************************************
     **                                                               **
     **           SUBSCRIPTION METHODS                                **
     **                                                               **
     ******************************************************************/
 
-
-
-
-
     /**
-    * Subscribes to the selected mailbox
-    *
-    * @param string $mailbox     mailbox name to subscribe
-    *
-    * @return mixed true on Success/PearError on Failure
-    * @since 1.0
-    */
+     * Subscribes to the selected mailbox
+     *
+     * @param   string  $mailbox    mailbox name to subscribe (default is current mailbox)
+     *
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function subscribeMailbox($mailbox = null )
     {
         if($mailbox == null){
@@ -1381,16 +1437,16 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
     /**
-    * Removes the subscription to a mailbox
-    *
-    * @param string $mailbox     mailbox name to unsubscribe
-    *
-    * @return mixed true on Success/PearError on Failure
-    * @since 1.0
-    */
+     * Removes the subscription to a mailbox
+     *
+     * @param   string  $mailbox    mailbox name to unsubscribe (default is current mailbox)
+     *
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function unsubscribeMailbox($mailbox = null)
     {
         if($mailbox == null){
@@ -1406,15 +1462,16 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
     /**
-    * Lists the subscription to mailboxes
-    *
-    * @param string $mailbox_base     mailbox name start the search (see to getMailboxes() )
-    * @param string $mailbox_name     mailbox name filter the search (see to getMailboxes() )
-    *
-    * @return mixed true on Success/PearError on Failure
-    * @since 1.0
-    */
-
+     * Lists the subscription to mailboxes
+     *
+     * @param   string  $mailbox_base   mailbox name start the search (see to getMailboxes() )
+     * @param   string  $mailbox_name   mailbox name filter the search (see to getMailboxes() )
+     *
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function listsubscribedMailboxes($reference = ''  , $restriction_search = 0, $returnAttributes = false)
     {
         if ( is_bool($restriction_search) ){
@@ -1475,31 +1532,22 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-
-
-
-
     /******************************************************************
     **                                                               **
     **           FLAGS METHODS                                       **
     **                                                               **
     ******************************************************************/
 
-
-
-
     /**
-    * Lists the flags of the selected messages
-    *
-    * @param mixes $msg_id  the message list
-    *
-    * @return mixed array on Success/PearError on Failure
-    * @since 1.0
-    */
+     * Lists the flags of the selected messages
+     *
+     * @param   mixed   $msg_id the message list
+     *
+     * @return  mixed   array on success/PearError on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function getFlags( $msg_id = null )
     {
       // You can also provide an array of numbers to those emails
@@ -1530,17 +1578,21 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+
     /**
      * Sets the flags of the selected messages
      *
-     * @param mixed  $msg_id  the message list or string "all" for all
-     * @param mixed  $flags   flags to set (space separated String or array)
-     * @param string $mod     "set" to set flags (default) 
-     *                        "add" to add flags
-     *                        "remove" to remove flags
-     * @param  $uidStore bool msg_id contains UID's instead of Message Sequence Number if set to true
+     * @param   mixed   $msg_id     the message list or string "all" for all
+     * @param   mixed   $flags      flags to set (space separated String or array)
+     * @param   string  $mod        "set" to set flags (default) 
+     *                              "add" to add flags
+     *                              "remove" to remove flags
+     * @param   boolean $uidStore   msg_id contains UID's instead of Message Sequence Number if set to true
      *
-     * @return mixed    true on success/PearError on failure
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @since   1.1
+     * @access  public
      */
     function setFlags($msg_id, $flags, $mod = 'set', $uidStore = false)
     {
@@ -1592,13 +1644,17 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+
     /**
      * adds flags to the selected messages
      *
-     * @param mixed $flags   flags to set (space separated String or array)
-     * @param mixed $msg_id  the message list or string "all" for all
+     * @param   mixed   $flags  flags to set (space separated String or array)
+     * @param   mixed   $msg_id the message list or string "all" for all
      *
-     * @return mixed true on success/PearError on failure
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @since   1.1
+     * @access  public 
      */
     function addFlags($msg_id, $flags)
     {
@@ -1606,12 +1662,16 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+
     /**
      * adds the Seen flag (\Seen) to the selected messages
      *
-     * @param mixed $msg_id  the message list or string "all" for all
+     * @param   mixed   $msg_id the message list or string "all" for all
      *
-     * @return mixed true   on success/PearError on failure
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @since   1.1
+     * @access  public
      */
     function addSeen($msg_id)
     {
@@ -1619,12 +1679,16 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+
     /**
      * adds the Answered flag (\Answered) to the selected messages
      *
-     * @param mixed $msg_id  the message list or string "all" for all
+     * @param   mixed   $msg_id the message list or string "all" for all
      *
-     * @return mixed    true on success/PearError on failure
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @since   1.1
+     * @access  public
      */
     function addAnswered($msg_id)
     {
@@ -1632,12 +1696,16 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+
     /**
      * adds the Deleted flag (\Deleted) to the selected messages
      *
-     * @param mixed $msg_id  the message list or string "all" for all
+     * @param   mixed   $msg_id the message list or string "all" for all
      *
-     * @return mixed    true on success/PearError on failure
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @since   1.1
+     * @access  public
      */
     function addDeleted($msg_id)
     {
@@ -1645,12 +1713,16 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+
     /**
      * adds the Flagged flag (\Flagged) to the selected messages
      *
-     * @param mixed $msg_id  the message list or string "all" for all
+     * @param   mixed   $msg_id the message list or string "all" for all
      *
-     * @return mixed    true on success/PearError on failure
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @since   1.1
+     * @access  public
      */
     function addFlagged($msg_id)
     {
@@ -1658,12 +1730,16 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+
     /**
      * adds the Draft flag (\Draft) to the selected messages
      *
-     * @param mixed $msg_id  the message list or string "all" for all
+     * @param   mixed   $msg_id the message list or string "all" for all
      *
-     * @return mixed    true on success/PearError on failure
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @since   1.1
+     * @access  public
      */
     function addDraft($msg_id)
     {
@@ -1671,13 +1747,17 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+
     /**
      * remove flags from the selected messages
      *
-     * @param mixed $flags   flags to remove (space separated string or array)
-     * @param mixed $msg_id  the message list or string "all" for all
+     * @param   mixed   $flags  flags to remove (space separated string or array)
+     * @param   mixed   $msg_id the message list or string "all" for all
      *
-     * @return mixed    true on success/PearError on failure
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @since   1.1
+     * @access  public
      */
     function removeFlags($msg_id, $flags)
     {
@@ -1685,12 +1765,16 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+
     /**
      * remove the Seen flag (\Seen) from the selected messages
      *
-     * @param mixed $msg_id  the message list or string "all" for all
+     * @param   mixed   $msg_id the message list or string "all" for all
      *
-     * @return mixed    true on success/PearError on failure
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @since   1.1
+     * @access  public
      */
     function removeSeen($msg_id)
     {
@@ -1698,12 +1782,16 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+
     /**
      * remove the Answered flag (\Answered) from the selected messages
      *
-     * @param mixed $msg_id  the message list or string "all" for all
+     * @param   mixed   $msg_id the message list or string "all" for all
      *
-     * @return mixed    true on success/PearError on failure
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @since   1.1
+     * @access  public
      */
     function removeAnswered($msg_id)
     {
@@ -1711,12 +1799,16 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+
     /**
      * remove the Deleted flag (\Deleted) from the selected messages
      *
-     * @param mixed $msg_id  the message list or string "all" for all
+     * @param   mixed   $msg_id the message list or string "all" for all
      *
-     * @return mixed    true on success/PearError on failure
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @since   1.1
+     * @access  public
      */
     function removeDeleted($msg_id)
     {
@@ -1724,12 +1816,16 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+
     /**
      * remove the Flagged flag (\Flagged) from the selected messages
      *
-     * @param mixed $msg_id  the message list or string "all" for all
+     * @param   mixed   $msg_id the message list or string "all" for all
      *
-     * @return mixed    true on success/PearError on failure
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @since   1.1
+     * @access  public
      */
     function removeFlagged($msg_id)
     {
@@ -1737,26 +1833,34 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+
     /**
      * remove the Draft flag (\Draft) from the selected messages
      *
-     * @param mixed $msg_id  the message list or string "all" for all
+     * @param   mixed   $msg_id the message list or string "all" for all
      *
-     * @return mixed    true on success/PearError on failure
+     * @return  mixed   true on success/PearError on failure
+     *
+     * @since   1.1
+     * @access  public
      */
     function removeDraft($msg_id)
     {
         return $this->setFlags($msg_id, '\Draft', $mod = 'remove');
     }
 
-   /**
-    * check the Seen flag
-    *
-    * @param mixes $message_nro the message to check
-    *
-    * @return mixed true or false if the flag is sert PearError on Failure
-    * @since 1.0
-    */
+
+
+    /**
+     * check the Seen flag
+     *
+     * @param   mixed   $message_nro    the message to check
+     *
+     * @return  mixed   true or false if the flag is set PearError on Failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function isSeen($message_nro)
     {
         return $this->hasFlag( $message_nro, "\\Seen" );
@@ -1764,15 +1868,16 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-   /**
-    * check the Answered flag
-    *
-    * @param mixes $message_nro the message to check
-    *
-    * @return mixed true or false if the flag is sert PearError on Failure
-    * @since 1.0
-    */
+    /**
+     * check the Answered flag
+     *
+     * @param   mixed   $message_nro    the message to check
+     *
+     * @return  mixed   true or false if the flag is set PearError on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function isAnswered($message_nro)
     {
         return $this->hasFlag( $message_nro, "\\Answered" );
@@ -1780,16 +1885,16 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-   /**
-    * check the flagged flag
-    *
-    * @param mixes $message_nro the message to check
-    *
-    * @return mixed true or false if the flag is sert PearError on Failure
-    * @since 1.0
-    */
+    /**
+     * check the flagged flag
+     *
+     * @param   mixed   $message_nro    the message to check
+     *
+     * @return  mixed   true or false if the flag is set PearError on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function isFlagged($message_nro)
     {
         return $this->hasFlag( $message_nro, "\\Flagged" );
@@ -1797,17 +1902,16 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-   /**
-    * check the Draft flag
-    *
-    * @param mixes $message_nro the message to check
-    *
-    * @return mixed true or false if the flag is sert PearError on Failure
-    * @since 1.0
-    */
+    /**
+     * check the Draft flag
+     *
+     * @param   mixed   $message_nro    the message to check
+     *
+     * @return  mixed   true or false if the flag is set PearError on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function isDraft($message_nro)
     {
         return $this->hasFlag( $message_nro, "\\Draft" );
@@ -1815,18 +1919,16 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-   /**
-    * check the Deleted flag
-    *
-    * @param mixes $message_nro the message to check
-    *
-    * @return mixed true or false if the flag is sert PearError on Failure
-    * @since 1.0
-    */
+    /**
+     * check the Deleted flag
+     *
+     * @param   mixed   $message_nro    the message to check
+     *
+     * @return  mixed   true or false if the flag is set PearError on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function isDeleted($message_nro)
     {
         return $this->hasFlag( $message_nro, "\\Deleted" );
@@ -1834,9 +1936,17 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
+    /**
+     * checks if a flag is set
+     *
+     * @param   mixed   $message_nro    the message to check
+     * @param   string  $flag           the flag that should be checked
+     *
+     * @return  mixed   true or false if the flag is set PearError on Failure
+     *
+     * @since   1.0
+     * @access  public
+     */
     function hasFlag($message_nro,$flag)
     {
         if ( PEAR::isError( $resp = $this->getFlags( $message_nro ) ) ) {
@@ -1854,24 +1964,21 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
     /******************************************************************
     **                                                               **
     **           MISC METHODS                                        **
     **                                                               **
     ******************************************************************/
 
-
-
-
-
-
-    /*
-    * expunge function. Sends the EXPUNGE command
-    *
-    *
-    * @return bool Success/Failure
-    */
+    
+    /**
+     * expunge function. Sends the EXPUNGE command
+     *
+     * @return  mixed   true on success / PEAR Error on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function expunge()
     {
         $ret = $this->cmdExpunge();
@@ -1883,16 +1990,17 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-    /*
-    * search function. Sends the SEARCH command
-    *
-    *
-    * @return bool Success/Failure
-    */
+    /**
+     * search function. Sends the SEARCH command
+     *
+     * @param   string  $search_list    search criterias
+     * @param   boolean $uidSearch      if set to true UID SEARCH is send instead of SEARCH
+     *
+     * @return  mixed   message array or PEAR Error on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function search($search_list, $uidSearch = false)
     {
         if($uidSearch){
@@ -1907,11 +2015,20 @@ class Net_IMAP extends Net_IMAPProtocol {
         return $ret["PARSED"]["SEARCH"]["SEARCH_LIST"];
     }
 
-    /*
-     * search function. Sends the SEARCH command
+
+
+    /**
+     * sort function. Sends the SORT command
      *
+     * @param   string  $sort_list      sort program
+     * @param   string  $charset        charset specification (default = 'US-ASCII')
+     * @param   string  $search_list    searching criteria
+     * @param   boolean $uidSort        if set to true UID SORT is send instead of SORT
      *
-     * @return bool Success/Failure
+     * @return  mixed   message array or PEAR Error on failure
+     *
+     * @access  public
+     * @since   1.1
      */
     function sort($sort_list, $charset='US-ASCII', $search_list = '', $uidSort = false)
     {
@@ -1932,7 +2049,6 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
     /******************************************************************
     **                                                               **
     **           QUOTA METHODS                                       **
@@ -1940,17 +2056,15 @@ class Net_IMAP extends Net_IMAPProtocol {
     ******************************************************************/
 
 
-
-
-
-
-     /**
+    /**
      * Returns STORAGE quota details
-     * @param string $mailbox_name Mailbox to get quota info.
-     * @return assoc array contaning the quota info  on success or PEAR_Error
      *
-     * @access public
-     * @since  1.0
+     * @param   string  $mailbox_name   Mailbox to get quota info. (default is current mailbox)
+     *
+     * @return  assoc array contaning the quota info on success or PEAR_Error on failure
+     *
+     * @access  public
+     * @since   1.0
      */
     function getStorageQuotaRoot($mailbox_name = null )
     {
@@ -1976,15 +2090,19 @@ class Net_IMAP extends Net_IMAPProtocol {
             return $ret['PARSED']['EXT']['QUOTA']['STORAGE'];
         }
         return array('USED'=>'NOT SET', 'QMAX'=>'NOT SET');
-   }
+    }
 
-     /**
+
+
+    /**
      * Returns STORAGE quota details
-     * @param string $mailbox_name Mailbox to get quota info.
-     * @return assoc array contaning the quota info  on success or PEAR_Error
      *
-     * @access public
-     * @since  1.0
+     * @param   string  $mailbox_name   Mailbox to get quota info. (default is current mailbox)
+     *
+     * @return  assoc array contaning the quota info on success or PEAR_Error on failure
+     *
+     * @access  public
+     * @since   1.0
      */
     function getStorageQuota($mailbox_name = null )
     {
@@ -2010,17 +2128,19 @@ class Net_IMAP extends Net_IMAPProtocol {
             return $ret['PARSED']['EXT']['QUOTA']['STORAGE'];
         }
         return array('USED'=>'NOT SET', 'QMAX'=>'NOT SET');
-   }
+    }
 
 
 
-     /**
+    /**
      * Returns MESSAGES quota details
-     * @param string $mailbox_name Mailbox to get quota info.
-     * @return assoc array contaning the quota info  on success or PEAR_Error
      *
-     * @access public
-     * @since  1.0
+     * @param   string  $mailbox_name   Mailbox to get quota info. (default is current mailbox)
+     *
+     * @return  assoc array contaning the quota info on success or PEAR_Error on failure
+     *
+     * @access  public
+     * @since   1.0
      */
     function getMessagesQuota($mailbox_name = null )
     {
@@ -2045,18 +2165,20 @@ class Net_IMAP extends Net_IMAPProtocol {
             return $ret['PARSED']['EXT']['QUOTA']['MESSAGES'];
         }
         return array('USED'=>'NOT SET', 'QMAX'=>'NOT SET');
-   }
+    }
+     
+    
 
-
-
-
-     /**
-     * sets STORAGE quota details
-     * @param string $mailbox_name Mailbox to get quota info.
-     * @return true on success or PEAR_Error
+    /**
+     * sets STORAGE quota
      *
-     * @access public
-     * @since  1.0
+     * @param   string  $mailbox_name   Mailbox to set quota
+     * @param   int     $quota          Quotasize
+     *
+     * @return  true on success or PEAR_Error on failure
+     *
+     * @access  public
+     * @since   1.0
      */
     function setStorageQuota($mailbox_name, $quota)
     {
@@ -2071,14 +2193,16 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-     /**
-     * sets MESSAGES quota details
-     * @param string $mailbox_name Mailbox to get quota info.
-     * @return true on success or PEAR_Error
+    /**
+     * sets MESSAGES quota
      *
-     * @access public
-     * @since  1.0
+     * @param   string  $mailbox_name   Mailbox to set quota
+     * @param   int     $quota          Quotasize
+     *
+     * @return  true on success or PEAR_Error on failure
+     *
+     * @access  public
+     * @since   1.0
      */
     function setMessagesQuota($mailbox_name, $quota)
     {
@@ -2094,11 +2218,6 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-
     /******************************************************************
     **                                                               **
     **           ACL METHODS                                         **
@@ -2106,17 +2225,15 @@ class Net_IMAP extends Net_IMAPProtocol {
     ******************************************************************/
 
 
-
-
-
-
     /**
      * get the Access Control List details
-     * @param string $mailbox_name Mailbox to get ACL info.
-     * @return string on success or PEAR_Error
      *
-     * @access public
-     * @since  1.0
+     * @param   string  $mailbox_name   Mailbox to get ACL info. (default is current mailbox)
+     *
+     * @return  mixed   string on success or PEAR_Error on failure
+     *
+     * @access  public
+     * @since   1.0
      */
     function getACL($mailbox_name = null )
     {
@@ -2140,22 +2257,18 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-
     /**
-    * Set ACL on a mailbox
-    *
-    * @param  string $mailbox_name  the mailbox
-    * @param  string $user          user to set the ACL
-    * @param  string $acl           ACL list
-    * @return mixed                 True on success, or PEAR_Error on false
-    *
-    * @access public
-    * @since  1.0
-    */
+     * Set ACL on a mailbox
+     *
+     * @param   string  $mailbox_name   the mailbox
+     * @param   string  $user           user to set the ACL
+     * @param   string  $acl            ACL list
+     *
+     * @return  mixed   true on success or PEAR_Error on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function setACL($mailbox_name, $user, $acl)
     {
         if ( PEAR::isError( $ret = $this->cmdSetACL($mailbox_name, $user, $acl) ) ) {
@@ -2168,16 +2281,18 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+
     /**
-    * deletes the ACL on a mailbox
-    *
-    * @param  string $mailbox_name  the mailbox
-    * @param  string $user          user to set the ACL
-    * @return mixed                 True on success, or PEAR_Error on false
-    *
-    * @access public
-    * @since  1.0
-    */
+     * deletes the ACL on a mailbox
+     *
+     * @param   string  $mailbox_name   the mailbox
+     * @param   string  $user           user to delete the ACL
+     *
+     * @return  mixed   true on success, or PEAR_Error on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function deleteACL($mailbox_name, $user)
     {
         if ( PEAR::isError( $ret = $this->cmdDeleteACL($mailbox_name, $user) ) ) {
@@ -2192,15 +2307,16 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
     /**
-    * returns the rights that the user logged on has on the mailbox
-    * this method can be used by any user, not only the administrator
-    *
-    * @param  string $mailbox_name  the mailbox to query rights
-    * @return mixed                 string contailing the list of rights on success, or PEAR_Error on failure
-    *
-    * @access public
-    * @since  1.0
-    */
+     * returns the rights that the user logged on has on the mailbox
+     * this method can be used by any user, not only the administrator
+     *
+     * @param   string  $mailbox_name    the mailbox to query rights (default is current mailbox)
+     *
+     * @return  mixed   string containing the list of rights on success, or PEAR_Error on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function getMyRights($mailbox_name = null)
     {
 
@@ -2221,27 +2337,22 @@ class Net_IMAP extends Net_IMAPProtocol {
         }
 
         return new PEAR_Error('Bogus response from server!' );
-
     }
 
 
 
-
-
-
-
-
-
     /**
-    * returns an array containing the rights that a user logged on has on the mailbox
-    * this method can be used by any user, not only the administrator
-    *
-    * @param  string $mailbox_name  the mailbox to query rights
-    * @return mixed                 string contailing the list of rights on success, or PEAR_Error on failure
-    *
-    * @access public
-    * @since  1.0
-    */
+     * returns an array containing the rights for given user on the mailbox
+     * this method can be used by any user, not only the administrator
+     *
+     * @param   string  $user           the user to query rights
+     * @param   string  $mailbox_name   the mailbox to query rights (default is current mailbox)
+     *
+     * @return  mixed   string containing the list of rights on success, or PEAR_Error on failure
+     *
+     * @access  public
+     * @since   1.0
+     */
     function getACLRights($user,$mailbox_name = null)
     {
 
@@ -2269,14 +2380,6 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-
-
-
-
     /******************************************************************
     **                                                               **
     **           ANNOTATEMORE METHODS                                **
@@ -2284,10 +2387,18 @@ class Net_IMAP extends Net_IMAPProtocol {
     ******************************************************************/
 
 
-
-
-
-
+    /**
+     * set annotation
+     *
+     * @param   string  $entry
+     * @param   array   $values
+     * @param   string  $mailbox_name   (default is current mailbox)
+     *
+     * @return  mixed   true on success or PEAR Error on failure
+     *
+     * @access  public
+     * @since   1.0.2
+     */
     function setAnnotation($entry, $values, $mailbox_name = null )
     {
         if($mailbox_name == null){
@@ -2304,10 +2415,18 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
-
-
-
-
+    /**
+     * delete annotation
+     *
+     * @param   string  $entry
+     * @param   array   $values
+     * @param   string  $mailbox_name   (default is current mailbox)
+     *
+     * @return  mixed   true on success or PEAR Error on failure
+     *
+     * @access  public
+     * @since   1.0.2
+     */
     function deleteAnnotation($entry, $values, $mailbox_name = null )
     {
         if($mailbox_name == null){
@@ -2324,10 +2443,18 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
-
-
-
-
+    /**
+     * get annotation
+     *
+     * @param   string  $entry
+     * @param   array   $values
+     * @param   string  $mailbox_name   (default is current mailbox)
+     *
+     * @return  mixed   array containing annotations on success or PEAR Error on failure
+     *
+     * @access  public
+     * @since   1.0.2
+     */
     function getAnnotation($entries, $values, $mailbox_name = null)
     {
         if($mailbox_name == null){
@@ -2374,25 +2501,20 @@ class Net_IMAP extends Net_IMAPProtocol {
 
 
 
-
-
-
-
-
-
-    /*
-    *   Transform an array to a list to be used in the cmdFetch method
-    *
-    */
+    /**
+     * Transform an array to a list to be used in the cmdFetch method
+     *
+     * @param   array   $arr    array to transform
+     *
+     * @return  string  transformed array
+     *
+     * @access  private
+     */
     function _getSearchListFromArray($arr){
 
         $txt=implode(',' , $arr);
         return $txt;
     }
-
-
-
-
 
 
 
@@ -2405,26 +2527,44 @@ class Net_IMAP extends Net_IMAPProtocol {
 
     *********************************************************/
 
-
-
-
+    
+    /**
+     * same as getMailboxSize()
+     * Net_POP3 Compatibility function
+     *
+     * @return  same as getMailboxSize();
+     *
+     * @access  public
+     */
     function getSize(){
         return $this->getMailboxSize();
     }
 
-
+    /**
+     * same as getNumberOfMessages($mailbox)
+     * Net_POP3 Compatibility function
+     *
+     * @param   string  $mailbox    Mailbox (default is current mailbox)
+     *
+     * @return  same as getNumberOfMessages($mailbox)
+     *
+     * @access  public
+     */
     function numMsg($mailbox = null){
         return $this->getNumberOfMessages($mailbox);
     }
 
 
-
-    /*
-    * Returns the entire message with given message number.
-    *
-    * @param  $msg_id Message number
-    * @return mixed   Either entire message or false on error
-    */
+    /**
+     * Returns the entire message with given message number.
+     * Net_POP3 Compatibility function
+     *
+     * @param   $msg_id Message number
+     *
+     * @return  mixed   either entire message or PEAR Error on failure
+     *
+     * @access  public
+     */
     function getMsg($msg_id)
     {
         $ret=$this->getMessages($msg_id,false);
@@ -2438,18 +2578,37 @@ class Net_IMAP extends Net_IMAPProtocol {
     }
 
 
+
+    /**
+     * same as getMessagesList($msg_id)
+     * Net_POP3 Compatibility function
+     *
+     * @param   $msg_id Message number
+     *
+     * @return  same as getMessagesList()
+     *
+     * @access  public
+     */
     function getListing($msg_id = null)
     {
         return $this->getMessagesList($msg_id);
     }
 
 
+    
+    /**
+     * same as deleteMessages($msg_id)
+     * Net_POP3 Compatibility function
+     *
+     * @param   $msg_id Message number
+     *
+     * @return  same as deleteMessages()
+     *
+     * @access  public
+     */
     function deleteMsg($msg_id){
         return $this->deleteMessages($msg_id);
     }
-
-
-
 
 
 }
