@@ -1294,7 +1294,7 @@ class Net_IMAP extends Net_IMAPProtocol {
      * @access  public
      * @since   1.0
      */
-    function getMailboxes($reference = ''  , $restriction_search = 0, $returnAttributes=false )
+    function getMailboxes($reference = '', $restriction_search = 0, $returnAttributes=false)
     {
 
         if ( is_bool($restriction_search) ){
@@ -1308,7 +1308,7 @@ class Net_IMAP extends Net_IMAPProtocol {
                     break;
                 case 1:
                     $mailbox = $reference;
-                    $reference = '%';
+                    $reference = '';
                     break;
                 case 2:
                     $mailbox = "%";
@@ -1318,7 +1318,7 @@ class Net_IMAP extends Net_IMAPProtocol {
             if ( is_string( $restriction_search ) ){
                 $mailbox = $restriction_search;
             }else {
-                return new PEAR_Error("UPS... you ");
+                return new PEAR_Error('Wrong data for 2nd parameter');
             }
         }
 
