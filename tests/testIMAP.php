@@ -213,7 +213,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
         $this->login();
         // this mailbox name must not exist before
         $mailboxname = 'INBOX'.$this->delimiter.'testMailboxExistöäüß';
-        
+        $this->fixture->deleteMailbox($mailboxname);
         $result = $this->fixture->mailboxExist($mailboxname);
         $this->assertFalse($result, 'Mailbox should NOT exist');
 
@@ -222,6 +222,9 @@ class testIMAP extends PHPUnit_Framework_TestCase
         
         $result = $this->fixture->mailboxExist($mailboxname);
         $this->assertTrue($result, 'Mailbox should exist');
+
+        $result = $this->fixture->deleteMailbox($mailboxname);
+        $this->assertTrue($result, 'Can not delete Mailbox');
 
         $this->logout();
     }
@@ -305,15 +308,21 @@ class testIMAP extends PHPUnit_Framework_TestCase
     public function testGetStorageQuotaRoot()
     {
         $this->login();
+        if (!$this->fixture->hasCapability('QUOTA')) {
+            return;
+        }
         $this->fixture->selectMailbox('INBOX');
         $result = $this->fixture->getStorageQuotaRoot();
-        $this->assertTrue(!PEAR::isError($result), 'Can not get QuotaRoot');
+        $this->assertTrue(!PEAR::isError($result), 'Can not get StorageQuotaRoot');
         $this->logout();
     }
 
     public function testGetACL()
     {
         $this->login();
+        if (!$this->fixture->hasCapability('ACL')) {
+            return;
+        }
         $result = $this->fixture->getACL();
         $this->assertTrue(!PEAR::isError($result), 'Can not get ACL');
         $this->logout();
