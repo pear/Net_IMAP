@@ -573,61 +573,62 @@ class Net_IMAP extends Net_IMAPProtocol {
      */
     function _parseStructureMultipartArray($_structure, &$_mimeParts, $_partID, $_parentIsMessage = false) 
     {
-        #print "Net_IMAP::_parseStructureMultipartArray _partID: $_partID<br>";
-        // a multipart/mixed get's no own id, if the parent is message/rfc822
-        // and multipart/report also not
-        if($_parentIsMessage == true && is_array($_structure[0]) && ($_structure[count($_structure)-5] == 'mixed' || $_structure[count($_structure)-5] == 'report')) {
-          // cut off at last .
-          $_partID = substr($_partID, 0, strrpos($_partID, '.'));
+        // a multipart/mixed, multipart/report or multipart/alternative get's no own partid, if the parent is message/rfc822
+        if ($_parentIsMessage == true && is_array($_structure[0])) {
+            foreach ($_structure as $structurePart) {
+                if (!is_array($structurePart)) {
+                    $subType = strtolower($structurePart);
+                    break;
+                }
+            }
+            if ($subType == 'mixed' || $subType == 'report' || $subType == 'alternative') {
+                $_partID = substr($_partID, 0, strrpos($_partID, '.'));
+            }
         }
+        
         $subPartID = 1;
         $partID = ($_partID == '') ? '' : $_partID.'.';
         $subMimeParts = array();
-        foreach($_structure as $structurePart) {
-          if(is_array($structurePart)) {
-            if(is_array($structurePart[0])) {
-              // another multipart inside the multipart
-              $this->_parseStructureMultipartArray($structurePart, $subMimeParts, $partID.$subPartID);
+        foreach ($_structure as $structurePart) {
+            if (is_array($structurePart)) {
+                if (is_array($structurePart[0])) {
+                    // another multipart inside the multipart
+                    $this->_parseStructureMultipartArray($structurePart, $subMimeParts, $partID.$subPartID);
+                } else {
+                    switch(strtoupper($structurePart[0])) {
+                        case 'IMAGE':
+                            $this->_parseStructureImageArray($structurePart, $subMimeParts, $partID.$subPartID);
+                            break;
+                        case 'MESSAGE':
+                            $this->_parseStructureMessageArray($structurePart, $subMimeParts, $partID.$subPartID);
+                            break;
+                        case 'TEXT':
+                            $this->_parseStructureTextArray($structurePart, $subMimeParts, $partID.$subPartID);
+                            break;
+                        default:
+                            $this->_parseStructureApplicationArray($structurePart, $subMimeParts, $partID.$subPartID);
+                            break;
+                    }
+                }
+                $subPartID++;
             } else {
-              switch(strtoupper($structurePart[0])) {
-                 case 'IMAGE':
-                  $this->_parseStructureImageArray($structurePart, $subMimeParts, $partID.$subPartID);
-                  
-                  break;
-
-                 case 'MESSAGE':
-                  $this->_parseStructureMessageArray($structurePart, $subMimeParts, $partID.$subPartID);
-                  
-                  break;
-
-                case 'TEXT':
-                  $this->_parseStructureTextArray($structurePart, $subMimeParts, $partID.$subPartID);
-              
-                  break;
-              }
-            }
-            $subPartID++;
-          } else {
-            $part = new stdClass;
-            $part->type = 'MULTIPART';
-            $part->subType = strtoupper($structurePart);
+                $part = new stdClass;
+                $part->type = 'MULTIPART';
+                $part->subType = strtoupper($structurePart);
           
-            $part->subParts = $subMimeParts;
+                $part->subParts = $subMimeParts;
           
-            if($_partID == '') {
-              $part->partID = 0;
-              $_mimeParts = array(0 => $part);
-            } else {
-              $part->partID = $_partID;
-              $_mimeParts = array($_partID => $part);
+                if ($_partID == '') {
+                    $part->partID = 0;
+                    $_mimeParts = array(0 => $part);
+                } else {
+                    $part->partID = $_partID;
+                    $_mimeParts = array($_partID => $part);
+                }
+                return;
             }
-            
-            return;
-          }
         }
     }
-    
-
 
     /**
      * Parse structure image array
