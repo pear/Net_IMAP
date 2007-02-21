@@ -328,6 +328,14 @@ class testIMAP extends PHPUnit_Framework_TestCase
         $this->logout();
     }
 
+    public function testGetHierarchyDelimiter() 
+    {
+        $this->login();
+        $result = $this->fixture->getHierarchyDelimiter();
+        $this->assertTrue(!PEAR::isError($result), 'Can not get Hierarchy Delimiter');
+        $this->logout();
+    }
+
 }
 
 ?>
