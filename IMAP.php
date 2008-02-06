@@ -755,6 +755,20 @@ class Net_IMAP extends Net_IMAPProtocol {
             }
           }
         }
+
+        if (is_array($_structure[9])) {
+            if (isset($_structure[9][0]) && $_structure[9][0] != 'NIL') {
+                $part->disposition = strtoupper($_structure[9][0]);
+            }
+            if (is_array($_structure[9][1])) {
+                foreach ($_structure[9][1] as $key => $value) {
+                    if ($key%2 == 0) {
+                        $part->dparameters[strtoupper($_structure[9][1][$key])] = $_structure[9][1][$key+1];
+                    }
+                }
+            }
+        }
+
         $part->partID = $_partID;
         
         $_mimeParts[$_partID] = $part;
