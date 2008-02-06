@@ -1194,9 +1194,13 @@ class Net_IMAP extends Net_IMAPProtocol {
         } else {
           $ret = $this->cmdCopy($message_set, $dest_mailbox );
         }
-        if ( PEAR::isError( $ret ) ) {
+        if (PEAR::isError($ret)) {
             return $ret;
         }
+        if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
+            return new PEAR_Error($ret['RESPONSE']['CODE'].', '.$ret['RESPONSE']['STR_CODE']);
+        }
+
         return true;
     }
 
