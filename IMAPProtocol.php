@@ -2060,15 +2060,13 @@ class Net_IMAPProtocol {
     * @access private
     * @since  1.0
     */
+    function _parseBodyResponse(&$str, $command) {
+        $this->_parseSpace($str , __LINE__ , __FILE__ );
+        while ($str[0] != ')' && $str != '') {
+            $params_arr[] = $this->_arrayfy_content($str);
+        }
 
-    function _parseBodyResponse(&$str, $command){
-
-            $this->_parseSpace($str , __LINE__ , __FILE__ );
-            while($str[0] != ')' && $str!=''){
-                $params_arr[] = $this->_arrayfy_content($str);
-            }
-
-            return $params_arr;
+        return $params_arr;
     }
 
 
@@ -2105,8 +2103,8 @@ class Net_IMAPProtocol {
                         if($params=='""'){
                             $params='';
                         }else{
-                            if($params[0]=='"'){
-                                $params=substr($params,1,$this->_getLineLength($params)-2);
+                            if ($params[0] == '"') {
+                                $params = $this->_getSubstr($params, 1, $this->_getLineLength($params)-2);
                             }
                         }
                         $params_arr[]=$params;
@@ -2118,6 +2116,7 @@ class Net_IMAPProtocol {
                 }
                 $this->_getNextToken($str,$params,false,false);
         }
+        $this->arrayfy_content_level--;
         return $params_arr;
     }
 
@@ -2315,10 +2314,10 @@ class Net_IMAPProtocol {
                     $pos++;
                 }
             }
-            if ( $str_line[$pos] == $startDelim ) {
-                $str_line_aux = substr( $str_line , $pos );
-                $pos_aux = $this->_getClosingBracesPos( $str_line_aux );
-                $pos+=$pos_aux;
+            if ($str_line[$pos] == $startDelim) {
+                $str_line_aux = $this->_getSubstr($str_line, $pos);
+                $pos_aux = $this->_getClosingBracesPos($str_line_aux);
+                $pos += $pos_aux;
             }
         }
         if( $str_line[$pos] != $stopDelim ){
@@ -2344,17 +2343,15 @@ class Net_IMAPProtocol {
     * @access private
     * @since  1.0
     */
-
-    function _getToEOL(&$str , $including = true)
-    {
-        $len = $this->_getLineLength( $str );
-        if( $including ){
-            for($i=0;$i<$len;$i++){
-                if( $str[$i] =="\n" )
+    function _getToEOL(&$str, $including = true) {
+        $len = $this->_getLineLength($str);
+        if ($including) {
+            for ($i=0; $i<$len; $i++) {
+                if ($str[$i] == "\n")
                     break;
             }
-            $content=substr($str,0,$i + 1);
-            $str=substr($str,$i + 1);
+            $content = $this->_getSubstr($str, 0, $i + 1);
+            $str = $this->_getSubstr($str, $i + 1);
             return $content;
 
         }else{
@@ -2362,8 +2359,8 @@ class Net_IMAPProtocol {
                 if( $str[$i] =="\n" || $str[$i] == "\r")
                     break;
             }
-            $content = substr( $str ,0 , $i );
-            $str = substr( $str , $i );
+            $content = $this->_getSubstr($str, 0, $i);
+            $str = $this->_getSubstr($str, $i);
             return $content;
         }
     }
@@ -2399,7 +2396,7 @@ class Net_IMAPProtocol {
             if( ($posClosingBraces = $this->_getClosingBracesPos($str, '{' , '}' )) == false ){
                 $this->_prot_error("_getClosingBracesPos() error!!!" , __LINE__ , __FILE__ );
             }
-            if(! is_numeric( ( $strBytes = substr( $str , 1 , $posClosingBraces - 1) ) ) ){
+            if (!is_numeric(($strBytes = $this->_getSubstr($str, 1, $posClosingBraces - 1)))) {
                 $this->_prot_error("must be a number but is a '" . $strBytes ."'!!!!" , __LINE__ , __FILE__ );
             }
             if( $str[$posClosingBraces] != '}' ){
@@ -2434,9 +2431,9 @@ class Net_IMAPProtocol {
                     $this->_prot_error("must be a '\"'  but is a '" . $str[$pos] ."'!!!!" , __LINE__ , __FILE__ );
                 }
                 $content_size = $pos;
-                $content = substr( $str , 1 , $pos - 1 );
+                $content = $this->_getSubstr($str, 1, $pos - 1);
                 //Advance the string
-                $str = substr( $str , $pos + 1 );
+                $str = $this->_getSubstr($str, $pos + 1);
             }else{
                 for($pos=1;$pos<$len;$pos++){
                     if ( $str[$pos] == "\"" ) {
@@ -2451,9 +2448,9 @@ class Net_IMAPProtocol {
                     $this->_prot_error("must be a '\"'  but is a '" . $str[$pos] ."'!!!!" , __LINE__ , __FILE__ );
                 }
                 $content_size = $pos;
-                $content = substr( $str , 0 , $pos + 1 );
+                $content = $this->_getSubstr($str, 0, $pos + 1);
                 //Advance the string
-                $str = substr( $str , $pos + 1 );
+                $str = $this->_getSubstr($str, $pos + 1);
 
             }
             # we need to strip slashes for a quoted string
@@ -2465,43 +2462,43 @@ class Net_IMAPProtocol {
             if( $str[1] == "\n")
                 $pos++;
             $content_size = $pos;
-            $content = substr( $str , 0 , $pos );
-            $str = substr( $str , $pos );
+            $content = $this->_getSubstr($str, 0, $pos);
+            $str = $this->_getSubstr($str, $pos);
             break;
         case "\n":
             $pos = 1;
             $content_size = $pos;
-            $content = substr( $str , 0 , $pos );
-            $str = substr( $str , $pos );
+            $content = $this->_getSubstr($str, 0, $pos);
+            $str = $this->_getSubstr($str ,$pos);
             break;
         case '(':
             if( $parenthesisIsToken == false ){
                 $pos = $this->_getClosingBracesPos( $str );
                 $content_size = $pos + 1;
-                $content = substr( $str , 0 , $pos + 1 );
-                $str = substr( $str , $pos + 1 );
+                $content = $this->_getSubstr($str, 0, $pos + 1);
+                $str = $this->_getSubstr($str, $pos + 1);
             }else{
                 $pos = 1;
                 $content_size = $pos;
-                $content = substr( $str , 0 , $pos );
-                $str = substr( $str , $pos );
+                $content = $this->_getSubstr($str, 0, $pos);
+                $str = $this->_getSubstr($str, $pos);
             }
             break;
         case ')':
             $pos = 1;
             $content_size = $pos;
-            $content = substr( $str , 0 , $pos );
-            $str = substr( $str , $pos );
+            $content = $this->_getSubstr($str, 0, $pos);
+            $str = $this->_getSubstr($str, $pos);
             break;
         case ' ':
             $pos = 1;
             $content_size = $pos;
-            $content = substr( $str , 0 , $pos );
-            $str = substr( $str , $pos );
+            $content = $this->_getSubstr($str, 0, $pos);
+            $str = $this->_getSubstr($str ,$pos);
             break;
         default:
-            for( $pos = 0 ; $pos < $len ; $pos++ ){
-                if(substr( $str , 0 , 5 ) == 'BODY[' || substr( $str , 0 , 5 ) == 'BODY.') {
+            for ($pos = 0; $pos < $len; $pos++) {
+                if ($this->_getSubstr($str, 0, 5) == 'BODY[' || $this->_getSubstr($str, 0, 5) == 'BODY.') {
                     if($str[$pos] == ']') {
                       $pos++;
                       break;
@@ -2515,21 +2512,19 @@ class Net_IMAPProtocol {
                     $pos++;
             }
             //Advance the string
-            if( $pos == 0 ){
+            if ($pos == 0) {
                 $content_size = 1;
-                $content = substr( $str , 0 , 1 );
-                $str = substr( $str , 1 );
-            }else{
+                $content = $this->_getSubstr($str, 0, 1);
+                $str = $this->_getSubstr($str, 1);
+            } else {
                 $content_size = $pos;
-                $content = substr( $str , 0 , $pos );
-                if($pos < $len){
-                    $str = substr( $str , $pos  );
-                }else{
+                $content = $this->_getSubstr($str, 0, $pos);
+                if ($pos < $len) {
+                    $str = $this->_getSubstr($str, $pos);
+                } else {
                 //if this is the end of the string... exit the switch
                     break;
                 }
-
-
             }
             break;
         }
