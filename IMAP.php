@@ -37,12 +37,12 @@ class Net_IMAP extends Net_IMAPProtocol {
      *
      * @param   string  The server to connect to.
      * @param   int     The port to connect to.
-     * @param   string  The value to give when sending EHLO or HELO.
+     * @param   bool    $enableSTARTTLS enable STARTTLS support
      */
-    function Net_IMAP($host = 'localhost', $port = 143)
+    function Net_IMAP($host = 'localhost', $port = 143, $enableSTARTTLS = true)
     {
         $this->Net_IMAPProtocol();
-        $ret = $this->connect( $host , $port );
+        $ret = $this->connect($host, $port, $enableSTARTTLS);
     }
 
 
@@ -51,24 +51,27 @@ class Net_IMAP extends Net_IMAPProtocol {
      * Attempt to connect to the IMAP server located at $host $port
      * @param string $host The IMAP server
      * @param string $port The IMAP port
-     * @param bool   $useTLS enable TLS support
+     * @param bool   $enableSTARTTLS enable STARTTLS support
      *
      *          It is only useful in a very few circunstances
      *          because the contructor already makes this job
+     *
      * @return true on success or PEAR_Error
      *
      * @access  public
      * @since   1.0
      */
-    function connect($host, $port)
+    function connect($host, $port, $enableSTARTTLS = true)
     {
-        $ret = $this->cmdConnect($host, $port, $useTLS = true);
-        if($ret === true ){
+        $ret = $this->cmdConnect($host, $port);
+        if ($ret === true) {
             // Determine server capabilities
             $res = $this->cmdCapability();
 
             // check if we can enable TLS via STARTTLS (requires PHP 5 >= 5.1.0RC1 for stream_socket_enable_crypto)
-            if ($this->hasCapability('STARTTLS') === true && $useTLS === true && function_exists('stream_socket_enable_crypto') === true) {
+            if ($this->hasCapability('STARTTLS') === true 
+                && $enableSTARTTLS === true 
+                && function_exists('stream_socket_enable_crypto') === true) {
                 if (PEAR::isError($res = $this->cmdStartTLS())) {
                     return $res;
                 }
