@@ -807,7 +807,11 @@ class Net_IMAP extends Net_IMAPProtocol {
             $message_set="1:*";
         }
 
-        $ret=$this->cmdFetch($message_set,"RFC822");
+		if (!$indexIsMessageNumber) {
+			$ret = $this->cmdUidFetch($message_set, 'RFC822');
+		} else {
+			$ret = $this->cmdFetch($message_set, 'RFC822');
+		}
         if (PEAR::isError($ret)) {
             return $ret;
         }
