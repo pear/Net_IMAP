@@ -2311,6 +2311,9 @@ class Net_IMAPProtocol {
                 $str_line_aux = $this->_getSubstr($str_line, $pos);
                 $pos_aux = $this->_getClosingBracesPos($str_line_aux);
                 $pos += $pos_aux;
+                if ($pos == $len-1) {
+                    break;
+                }
             }
         }
         if( $str_line[$pos] != $stopDelim ){
