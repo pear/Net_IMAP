@@ -581,7 +581,9 @@ class Net_IMAP extends Net_IMAPProtocol {
      */
     function _parseStructureMultipartArray($_structure, &$_mimeParts, $_partID, $_parentIsMessage = false) 
     {
-        // a multipart/mixed, multipart/report or multipart/alternative get's no own partid, if the parent is message/rfc822
+        // a multipart/mixed, multipart/report or multipart/alternative 
+        // or multipart/related get's no own partid, if the parent 
+        // is message/rfc822
         if ($_parentIsMessage == true && is_array($_structure[0])) {
             foreach ($_structure as $structurePart) {
                 if (!is_array($structurePart)) {
@@ -589,7 +591,7 @@ class Net_IMAP extends Net_IMAPProtocol {
                     break;
                 }
             }
-            if ($subType == 'mixed' || $subType == 'report' || $subType == 'alternative') {
+            if ($subType == 'mixed' || $subType == 'report' || $subType == 'alternative' || $subType == 'related') {
                 $_partID = substr($_partID, 0, strrpos($_partID, '.'));
             }
         }
