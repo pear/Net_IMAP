@@ -525,36 +525,41 @@ class Net_IMAP extends Net_IMAPProtocol {
      * @param   $_structure
      * @param   &$_mimeParts
      * @param   $_partID
-     *
      * @return  nothing
-     *
      * @access  private
      */
     function _parseStructureArray($_structure, &$_mimeParts, $_partID = '') 
     {
         // something went wrong
-        if(!is_array($_structure)) {
-          return false;
+        if (!is_array($_structure)) {
+            return false;
         }
 
-        #print "<hr>Net_IMAP::_parseStructureArray _partID: $_partID<br>";
+        // print "Net_IMAP::_parseStructureArray _partID: $_partID";
         $mimeParts = array();
         $subPartID = 1;
-        $partID = ($_partID == '') ? '' : $_partID.'.';
-        if(is_array($_structure[0])) {
-          $this->_parseStructureMultipartArray($_structure, $_mimeParts, $_partID);
+        if ($_partID == '') {
+            $partID = '';
         } else {
-          switch(strtoupper($_structure[0])) {
-            case 'TEXT':
-              $this->_parseStructureTextArray($_structure, $_mimeParts, $partID.$subPartID);
-              break;
-
-             case 'MESSAGE':
-              $this->_parseStructureMessageArray($_structure, $_mimeParts, $partID.$subPartID);
-              break;
-          }
+            $partID = $_partID.'.';
         }
-        
+        if (is_array($_structure[0])) {
+            $this->_parseStructureMultipartArray($_structure, $_mimeParts, $_partID);
+        } else {
+            switch (strtoupper($_structure[0])) {
+                case 'TEXT':
+                    $this->_parseStructureTextArray($_structure, $_mimeParts, $partID.$subPartID);
+                    break;
+
+                case 'MESSAGE':
+                    $this->_parseStructureMessageArray($_structure, $_mimeParts, $partID.$subPartID);
+                    break;
+
+                default:
+                    $this->_parseStructureApplicationArray($_structure, $_mimeParts, $partID.$subPartID);
+                    break;
+            }
+        }
     }
     
 
