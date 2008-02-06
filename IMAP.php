@@ -1362,16 +1362,16 @@ class Net_IMAP extends Net_IMAPProtocol {
 
             //If the folder has the \NoSelect atribute we don't put in the list
             // it solves a bug in wu-imap that crash the IMAP server if we select that mailbox
-                if( isset($mbox["EXT"]["LIST"]["NAME_ATTRIBUTES"]) ){
-                    if( !in_array('\NoSelect',$mbox["EXT"]["LIST"]["NAME_ATTRIBUTES"]) ){
-                        if( $returnAttributes){
-                            $ret_aux[]=array(   'MAILBOX' => $mbox["EXT"]["LIST"]["MAILBOX_NAME"],
-                                                'ATTRIBUTES' => $mbox["EXT"]["LIST"]["NAME_ATTRIBUTES"] ,
-                                                'HIERACHY_DELIMITER' => $mbox["EXT"]["LIST"]["HIERACHY_DELIMITER"] ) ;
-                        }else{
-                            $ret_aux[]=$mbox["EXT"]["LIST"]["MAILBOX_NAME"];
+                if (isset($mbox['EXT']['LIST']['NAME_ATTRIBUTES'])) {
+                    // if (!in_array('\NoSelect', $mbox['EXT']['LIST']['NAME_ATTRIBUTES'])) {
+                        if ($returnAttributes) {
+                            $ret_aux[]=array('MAILBOX' => $mbox['EXT']['LIST']['MAILBOX_NAME'],
+                                             'ATTRIBUTES' => $mbox['EXT']['LIST']['NAME_ATTRIBUTES'],
+                                             'HIERACHY_DELIMITER' => $mbox['EXT']['LIST']['HIERACHY_DELIMITER']);
+                        } else {
+                            $ret_aux[] = $mbox['EXT']['LIST']['MAILBOX_NAME'];
                         }
-                    }
+                    // }
                 }
             }
         }
