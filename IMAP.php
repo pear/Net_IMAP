@@ -1387,8 +1387,8 @@ class Net_IMAP extends Net_IMAPProtocol
 
             foreach ($singleNameSpace as $nameSpaceData) {
                 $nameSpaces[$type][] = array(
-                    'name'		=> $this->utf_7_decode($nameSpaceData[0]),
-                    'delimter'	=> $this->utf_7_decode($nameSpaceData[1])
+                    'name'      => $this->utf7Decode($nameSpaceData[0]),
+                    'delimter'  => $this->utf7Decode($nameSpaceData[1])
                 );
             }
         }
