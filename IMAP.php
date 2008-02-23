@@ -477,20 +477,23 @@ class Net_IMAP extends Net_IMAPProtocol
     /**
      * Returns the body of the message with given message number.
      *
-     * @param sting   $msg_id   Message number
+     * @param string  $msg_id   Message number
      * @param boolean $uidFetch msg_id contains UID's instead of Message 
      *                          Sequence Number if set to true
+     * @param string  $partId   Part ID
      *
-     * @return mixed Either message body or false on error
-     *
+     * @return mixed Either message body or PEAR_Error on failure
      * @access public
      */
-    function getBody($msg_id, $uidFetch = false)
+    function getBody($msg_id, $uidFetch = false, $partId = '')
     {
+        if ($partId != '') {
+            $partId = '.' . strtoupper($partId);
+        }
         if ($uidFetch) {
-            $ret = $this->cmdUidFetch($msg_id, 'BODY[TEXT]');
+            $ret = $this->cmdUidFetch($msg_id, 'BODY' . $partId . '[TEXT]');
         } else {
-            $ret = $this->cmdFetch($msg_id, 'BODY[TEXT]');
+            $ret = $this->cmdFetch($msg_id, 'BODY' . $partId . '[TEXT]');
         }
         if (PEAR::isError($ret)) {
             return $ret;

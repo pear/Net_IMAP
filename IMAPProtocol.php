@@ -1109,26 +1109,31 @@ class Net_IMAPProtocol
             $flags_list = ' (' . $flags_list . ')';
         }
 
-        // TODO:
-        // Falta el codigo para que flags list y time hagan algo!!
-        // ToDo: find someone who can translate the above
         if ($this->hasCapability('LITERAL+') == true) {
-            $param = sprintf("%s%s%s {%s+}\r\n%s",
-                             $mailbox_name,
-                             $flags_list,
-                             $time,
-                             $msg_size,
-                             $msg);
+            if ($time != '') {
+                $timeAsString = date("d-M-Y H:i:s O", $time);
+                $param = sprintf("%s %s\"%s\"{%s+}\r\n%s",
+                                 $mailbox_name,
+                                 $flags_list,
+                                 $timeAsString, 
+                                 $msg_size,
+                                 $msg);
+            } else {
+                $param = sprintf("%s%s {%s+}\r\n%s",
+                                 $mailbox_name,
+                                 $flags_list,
+                                 $msg_size,
+                                 $msg);
+            }
             if (PEAR::isError($error = $this->_putCMD($cmdid, 
                                                       'APPEND', 
                                                       $param))) {
                 return $error;
             }
         } else {
-            $param = sprintf("%s%s%s {%s}",
+            $param = sprintf("%s%s {%s}",
                              $mailbox_name,
                              $flags_list,
-                             $time,
                              $msg_size);
             if (PEAR::isError($error = $this->_putCMD($cmdid, 
                                                       'APPEND', 
