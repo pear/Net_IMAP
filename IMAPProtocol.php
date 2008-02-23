@@ -1829,16 +1829,16 @@ class Net_IMAPProtocol
     /**
      * Send the SETANNOTATION command.
      *
-     * @param string $mailbox_name Mailbox name
-     * @param string $entry        Entry
-     * @param string $values       Value
+     * @param string $mailboxName Mailbox name
+     * @param string $entry       Entry
+     * @param string $values      Value
      *
      * @return mixed Returns a PEAR_Error with an error message on any
      *               kind of failure, or true on success
      * @access public
      * @since 1.0
      */
-    function cmdSetAnnotation($mailbox_name, $entry, $values)
+    function cmdSetAnnotation($mailboxName, $entry, $values)
     {
         // Check if the IMAP server has ANNOTATEMORE support
         if (!$this->hasAnnotateMoreSupport()) {
@@ -1851,6 +1851,8 @@ class Net_IMAPProtocol
                                   . 'cmdSetAnnotation');
         }
 
+        $mailboxName = $this->_createQuotedString($mailboxName);
+
         $vallist = '';
         foreach ($values as $name => $value) {
             $vallist .= '"' . $name . '" "' . $value . '"';
@@ -1858,8 +1860,8 @@ class Net_IMAPProtocol
         $vallist = rtrim($vallist);
 
         return $this->_genericCommand('SETANNOTATION', 
-                                      sprintf('"%s" "%s" (%s)', 
-                                              $mailbox_name, 
+                                      sprintf('%s "%s" (%s)', 
+                                              $mailboxName, 
                                               $entry, 
                                               $vallist));
     }
@@ -1869,16 +1871,16 @@ class Net_IMAPProtocol
     /**
      * Send the DELETEANNOTATION command.
      *
-     * @param string $mailbox_name Mailbox name
-     * @param string $entry        Entry
-     * @param string $values       Value
+     * @param string $mailboxName Mailbox name
+     * @param string $entry       Entry
+     * @param string $values      Value
      *
      * @return mixed Returns a PEAR_Error with an error message on any
      *               kind of failure, or true on success
      * @access public
      * @since 1.0
      */
-    function cmdDeleteAnnotation($mailbox_name, $entry, $values)
+    function cmdDeleteAnnotation($mailboxName, $entry, $values)
     {
         // Check if the IMAP server has ANNOTATEMORE support
         if (!$this->hasAnnotateMoreSupport()) {
@@ -1891,6 +1893,8 @@ class Net_IMAPProtocol
                                   . 'cmdDeleteAnnotation');
         }
 
+        $mailboxName = $this->_createQuotedString($mailboxName);
+
         $vallist = '';
         foreach ($values as $name) {
             $vallist .= '"' . $name . '" NIL';
@@ -1898,8 +1902,8 @@ class Net_IMAPProtocol
         $vallist = rtrim($vallist);
 
         return $this->_genericCommand('SETANNOTATION', 
-                                      sprintf('"%s" "%s" (%s)', 
-                                              $mailbox_name, 
+                                      sprintf('%s "%s" (%s)', 
+                                              $mailboxName, 
                                               $entry, 
                                               $vallist));
     }
@@ -1909,16 +1913,16 @@ class Net_IMAPProtocol
     /**
      * Send the GETANNOTATION command.
      *
-     * @param string $mailbox_name Mailbox name
-     * @param string $entries      Entries
-     * @param string $values       Value
+     * @param string $mailboxName Mailbox name
+     * @param string $entries     Entries
+     * @param string $values      Value
      *
      * @return mixed Returns a PEAR_Error with an error message on any
      *               kind of failure, or GETANNOTATION result on success
      * @access public
      * @since 1.0
      */
-    function cmdGetAnnotation($mailbox_name, $entries, $values)
+    function cmdGetAnnotation($mailboxName, $entries, $values)
     {
         // Check if the IMAP server has ANNOTATEMORE support
         if (!$this->hasAnnotateMoreSupport()) {
@@ -1953,9 +1957,11 @@ class Net_IMAPProtocol
             $vallist = '(' . $vallist . ')';
         }
 
+        $mailboxName = $this->_createQuotedString($mailboxName);
+
         return $this->_genericCommand('GETANNOTATION', 
-                                      sprintf('"%s" %s %s', 
-                                              $mailbox_name, 
+                                      sprintf('%s %s %s', 
+                                              $mailboxName, 
                                               $entlist, 
                                               $vallist));
     }
