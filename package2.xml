@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<package packagerversion="1.4.11" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
+<package version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
 http://pear.php.net/dtd/tasks-1.0.xsd
 http://pear.php.net/dtd/package-2.0
 http://pear.php.net/dtd/package-2.0.xsd">
@@ -15,39 +15,28 @@ http://pear.php.net/dtd/package-2.0.xsd">
   <active>yes</active>
  </lead>
  <lead>
+  <name>Sebastian Ebling</name>
+  <user>hudeldudel</user>
+  <email>hudeldudel@php.net</email>
+  <active>yes</active>
+ </lead>
+ <lead>
   <name>Damian Alejandro Fernandez Sosa</name>
   <user>damian</user>
   <email>damlists@cnba.uba.ar</email>
   <active>no</active>
  </lead>
- <developer>
-  <name>Sebastian Ebling</name>
-  <user>hudeldudel</user>
-  <email>hudeldudel@php.net</email>
-  <active>yes</active>
- </developer>
- <date>2007-01-09</date>
- <time>17:02:31</time>
+ <date>2008-03-10</date>
  <version>
-  <release>1.1.0beta1</release>
-  <api>1.1.0beta1</api>
+  <release>1.1.0beta2</release>
+  <api>1.1.0beta2</api>
  </version>
  <stability>
   <release>beta</release>
   <api>beta</api>
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
- <notes>new beta release fixing bugs and introducing new features
-* bugfixing
-* add STARTTLS support for PHP 5.1 and above
-* added methods for manipulating message flags
-* added support for fetching the mailbox status at once (getStatus)
-* added support for fetching subparts and the headers of subparts
-* added support for fetching the namespace
-* added support for fetching the bodystructure
-* added support for setting flags when appending messages
-* added method for parsing image information
- </notes>
+ <notes>new beta release fixing bugs</notes>
  <contents>
   <dir name="/">
    <dir name="docs">
@@ -66,7 +55,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
  <dependencies>
   <required>
    <php>
-    <min>4.0.0</min>
+    <min>4.2</min>
    </php>
    <pearinstaller>
     <min>1.4.0b1</min>
@@ -74,12 +63,42 @@ http://pear.php.net/dtd/package-2.0.xsd">
    <package>
     <name>Net_Socket</name>
     <channel>pear.php.net</channel>
-    <min>1.0</min>
+    <min>1.0.8</min>
    </package>
   </required>
+  <optional>
+   <package>
+    <name>Auth_SASL</name>
+    <channel>pear.php.net</channel>
+    <min>1.0.2</min>
+   </package>
+  </optional>
  </dependencies>
  <phprelease />
  <changelog>
+  <release>
+   <version>
+    <release>1.1.0beta1</release>
+    <api>1.1.0beta1</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <date>2007-01-10</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes> new beta release fixing bugs and introducing new features
+   * bugfixing
+   * add STARTTLS support for PHP 5.1 and above
+   * added methods for manipulating message flags
+   * added support for fetching the mailbox status at once (getStatus)
+   * added support for fetching subparts and the headers of subparts
+   * added support for fetching the namespace
+   * added support for fetching the bodystructure
+   * added support for setting flags when appending messages
+   * added method for parsing image information
+   </notes>
+  </release>
   <release>
    <version>
     <release>1.0.3</release>
