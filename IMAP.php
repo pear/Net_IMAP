@@ -13,6 +13,9 @@
  * @link      http://pear.php.net/package/Net_IMAP
  */
 
+/**
+ * IMAPProtocol.php holds protocol implementation for IMAP.php
+ */
 require_once 'Net/IMAPProtocol.php';
 
 

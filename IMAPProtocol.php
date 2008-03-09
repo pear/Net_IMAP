@@ -13,6 +13,9 @@
  * @link      http://pear.php.net/package/Net_IMAP
  */
 
+/**
+ * Net_IMAP requires Net_Socket
+ */
 require_once 'Net/Socket.php';
 
 
