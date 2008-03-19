@@ -48,6 +48,7 @@ class Net_IMAPProtocol
     /**
      * _serverAuthMethods
      * @var boolean
+     * @access private
      */
     var $_serverAuthMethods = null;
 
@@ -62,6 +63,7 @@ class Net_IMAPProtocol
     /**
      * The socket resource being used to connect to the IMAP server.
      * @var resource
+     * @access private
      */
     var $_socket = null;
 
@@ -69,6 +71,7 @@ class Net_IMAPProtocol
     /**
      * The timeout for the connection to the IMAP server.
      * @var int
+     * @access private
      */
     var $_timeout = null;
 
@@ -77,6 +80,7 @@ class Net_IMAPProtocol
      * The options for SSL/TLS connection 
      * (see documentation for stream_context_create)
      * @var array
+     * @access private
      */
     var $_streamContextOptions = null;
 
@@ -84,6 +88,7 @@ class Net_IMAPProtocol
     /**
      * To allow class debuging
      * @var boolean
+     * @access private
      */
     var $_debug = false;
     var $dbgDialog = '';
@@ -92,6 +97,7 @@ class Net_IMAPProtocol
     /**
      * Print error messages
      * @var boolean
+     * @access private
      */
     var $_printErrors = false;
 
@@ -99,6 +105,7 @@ class Net_IMAPProtocol
     /**
      * Command Number
      * @var int
+     * @access private
      */
     var $_cmd_counter = 1;
 
@@ -106,6 +113,7 @@ class Net_IMAPProtocol
     /**
      * Command Number for IMAP commands
      * @var int
+     * @access private
      */
     var $_lastCmdID = 1;
 
@@ -113,6 +121,7 @@ class Net_IMAPProtocol
     /**
      * Command Number
      * @var boolean
+     * @access private
      */
     var $_unParsedReturn = false;
 
@@ -120,6 +129,7 @@ class Net_IMAPProtocol
     /**
      * _connected: checks if there is a connection made to a imap server or not
      * @var boolean
+     * @access private
      */
     var $_connected = false;
 
@@ -127,6 +137,7 @@ class Net_IMAPProtocol
     /**
      * Capabilities
      * @var boolean
+     * @access private
      */
     var $_serverSupportedCapabilities = null;
 
@@ -134,6 +145,7 @@ class Net_IMAPProtocol
     /**
      * Use UTF-7 funcionallity
      * @var boolean
+     * @access private
      */
     var $_useUTF_7 = true;
 
