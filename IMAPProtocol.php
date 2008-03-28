@@ -166,8 +166,6 @@ class Net_IMAPProtocol
          * Include the Auth_SASL package.  If the package is not available,
          * we disable the authentication methods that depend upon it.
          */
-
-
         if ((@include_once 'Auth/SASL.php') == false) {
             foreach ($this->supportedSASLAuthMethods as $SASLMethod) {
                 $pos = array_search($SASLMethod, $this->supportedAuthMethods);
@@ -189,7 +187,7 @@ class Net_IMAPProtocol
      * @access public
      * @since  1.0
      */
-    function cmdConnect($host= 'localhost', $port = 143)
+    function cmdConnect($host = 'localhost', $port = 143)
     {
         if ($this->_connected) {
             return new PEAR_Error('already connected, logout first!');
@@ -2215,7 +2213,6 @@ class Net_IMAPProtocol
             }
             $this->_getNextToken($str, $params, false, false);
         }
-        $this->arrayfy_content_level--;
         return $params_arr;
     }
 
