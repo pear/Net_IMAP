@@ -329,6 +329,8 @@ class Net_IMAPProtocol
         return true;
     }
 
+
+
     /**
      * Receive the given string of data from the server.
      *
@@ -2578,9 +2580,9 @@ class Net_IMAPProtocol
         }
         switch ($str[0]) {
         case '{':
-            if ($posClosingBraces = $this->_getClosingBracesPos($str, 
-                                                                '{', 
-                                                                '}') == false) {
+            if (($posClosingBraces = $this->_getClosingBracesPos($str, 
+                                                               '{', 
+                                                               '}')) == false) {
                 $this->_protError('_getClosingBracesPos() error!!!', 
                                   __LINE__, 
                                   __FILE__);
