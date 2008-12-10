@@ -48,7 +48,7 @@ class Net_IMAP extends Net_IMAPProtocol
                       $encoding = 'ISO-8859-1')
     {
         $this->Net_IMAPProtocol();
-        $ret = $this->connect($host, $port, $enableSTARTTLS);
+        $ret             = $this->connect($host, $port, $enableSTARTTLS);
         $this->_encoding = $encoding;
     }
 
@@ -436,10 +436,10 @@ class Net_IMAP extends Net_IMAPProtocol
         }
         if ($uidFetch) {
             $ret = $this->cmdUidFetch($message_set,
-                                      '(RFC822.SIZE UID FLAGS ENVELOPE INTERNALDATE BODY.PEEK[HEADER.FIELDS (CONTENT-TYPE)])');
+                                      '(RFC822.SIZE UID FLAGS ENVELOPE INTERNALDATE BODY.PEEK[HEADER.FIELDS (CONTENT-TYPE X-PRIORITY)])');
         } else {
             $ret = $this->cmdFetch($message_set,
-                                   '(RFC822.SIZE UID FLAGS ENVELOPE INTERNALDATE BODY.PEEK[HEADER.FIELDS (CONTENT-TYPE)])');
+                                   '(RFC822.SIZE UID FLAGS ENVELOPE INTERNALDATE BODY.PEEK[HEADER.FIELDS (CONTENT-TYPE X-PRIORITY)])');
         }
         // $ret=$this->cmdFetch($message_set,"(RFC822.SIZE UID FLAGS ENVELOPE INTERNALDATE BODY[1.MIME])");
         if (PEAR::isError($ret)) {
@@ -451,8 +451,6 @@ class Net_IMAP extends Net_IMAPProtocol
                                   . $ret['RESPONSE']['STR_CODE']);
         }
 
-        // print "<hr>"; var_dump($ret["PARSED"]); print "<hr>";
-
         if (isset($ret['PARSED'])) {
             for ($i=0; $i<count($ret['PARSED']); $i++) {
                 $a                 = $ret['PARSED'][$i]['EXT']['ENVELOPE'];
@@ -461,14 +459,36 @@ class Net_IMAP extends Net_IMAPProtocol
                 $a['FLAGS']        = $ret["PARSED"][$i]['EXT']['FLAGS'];
                 $a['INTERNALDATE'] = $ret["PARSED"][$i]['EXT']['INTERNALDATE'];
                 $a['SIZE']         = $ret["PARSED"][$i]['EXT']['RFC822.SIZE'];
-                if (isset($ret['PARSED'][$i]['EXT']['BODY[HEADER.FIELDS (CONTENT-TYPE)]']['CONTENT'])) {
-                    if (preg_match('/^content-type: (.*);/iU', $ret['PARSED'][$i]['EXT']['BODY[HEADER.FIELDS (CONTENT-TYPE)]']['CONTENT'], $matches)) {
+                if (isset($ret['PARSED'][$i]['EXT']['BODY[HEADER.FIELDS (CONTENT-TYPE X-PRIORITY)]']['CONTENT'])) {
+                    if (preg_match('/content-type: (.*);/iU', 
+                                   $ret['PARSED'][$i]['EXT']['BODY[HEADER.FIELDS (CONTENT-TYPE X-PRIORITY)]']['CONTENT'], 
+                                   $matches)) {
                         $a['MIMETYPE'] = strtolower($matches[1]);
                     }
-                } elseif (isset($ret['PARSED'][$i]['EXT']['BODY[HEADER.FIELDS ("CONTENT-TYPE")]']['CONTENT'])) {
+                    // fetch the priority [CONTENT] => X-Priority: 
+                    // 5\r\nContent-Type: multipart/alternative;\r\n
+                    // \tboundary="b1_61838a67749ca51b425e42489adced98"
+                    // \r\n\r\n\n
+                    if (preg_match('/x-priority: ([0-9])/iU',
+                                   $ret['PARSED'][$i]['EXT']['BODY[HEADER.FIELDS (CONTENT-TYPE X-PRIORITY)]']['CONTENT'],
+                                   $matches)) {
+                        $a['PRIORITY'] = strtolower($matches[1]);
+                    }
+                } elseif (isset($ret['PARSED'][$i]['EXT']['BODY[HEADER.FIELDS ("CONTENT-TYPE" "X-PRIORITY")]']['CONTENT'])) {
                     // some versions of cyrus send "CONTENT-TYPE" and CONTENT-TYPE only
-                    if (preg_match('/^content-type: (.*);/iU', $ret['PARSED'][$i]['EXT']['BODY[HEADER.FIELDS ("CONTENT-TYPE")]']['CONTENT'], $matches)) {
+                    if (preg_match('/content-type: (.*);/iU', 
+                                   $ret['PARSED'][$i]['EXT']['BODY[HEADER.FIELDS ("CONTENT-TYPE" "X-PRIORITY")]']['CONTENT'], 
+                                   $matches)) {
                         $a['MIMETYPE'] = strtolower($matches[1]);
+                    }
+                    //  fetch the priority [CONTENT] => X-Priority: 
+                    // 5\r\nContent-Type: multipart/alternative;\r\n\
+                    // tboundary="b1_61838a67749ca51b425e42489adced98"
+                    // \r\n\r\n\n
+                    if (preg_match('/x-priority: ([0-9])/iU', 
+                                   $ret['PARSED'][$i]['EXT']['BODY[HEADER.FIELDS ("CONTENT-TYPE" "X-PRIORITY")]']['CONTENT'], 
+                                   $matches)) {
+                        $a['PRIORITY'] = strtolower($matches[1]);
                     }
                 }
                 $env[] = $a;
@@ -905,6 +925,7 @@ class Net_IMAP extends Net_IMAPProtocol
                 }
             }
         }
+        $part->filename = $_structure[4];
         $part->encoding = strtoupper($_structure[5]);
         $part->bytes    = $_structure[6];
         
@@ -1028,7 +1049,8 @@ class Net_IMAP extends Net_IMAPProtocol
         }
         if (isset($ret['PARSED']['STATUS']['ATTRIBUTES']['UNSEEN'])) {
             if (!is_numeric($ret['PARSED']['STATUS']['ATTRIBUTES']['UNSEEN'])) {
-                // if this array does not exists means that there is no messages in the mailbox
+                // if this array does not exists means that there is 
+                // no messages in the mailbox
                 return 0;
             } else {
                 return $ret['PARSED']['STATUS']['ATTRIBUTES']['UNSEEN'];
@@ -1445,7 +1467,8 @@ class Net_IMAP extends Net_IMAPProtocol
         if (isset($ret['PARSED'][0]['EXT']['LIST']['HIERACHY_DELIMITER'])) {
             return $ret['PARSED'][0]['EXT']['LIST']['HIERACHY_DELIMITER'];
         }
-        return new PEAR_Error('the IMAP Server does not support HIERACHY_DELIMITER!');
+        return new PEAR_Error('the IMAP Server does not support '
+                              . 'HIERACHY_DELIMITER!');
     }
 
 
@@ -1518,7 +1541,8 @@ class Net_IMAP extends Net_IMAPProtocol
                 // it solves a bug in wu-imap that crash the IMAP server if 
                 // we select that mailbox
                 if (isset($mbox['EXT']['LIST']['NAME_ATTRIBUTES'])) {
-                    // if (!in_array('\NoSelect', $mbox['EXT']['LIST']['NAME_ATTRIBUTES'])) {
+                    // if (!in_array('\NoSelect', 
+                    //               $mbox['EXT']['LIST']['NAME_ATTRIBUTES'])) {
                     if ($returnAttributes) {
                         $ret_aux[] = array(
                             'MAILBOX'            => $mbox['EXT']['LIST']['MAILBOX_NAME'],
@@ -1798,14 +1822,15 @@ class Net_IMAP extends Net_IMAPProtocol
     /**
      * Lists the flags of the selected messages
      *
-     * @param mixed $msg_id the message list
+     * @param mixed   $msg_id     the message list
+     * @param boolean $includeUid include uid in result
      *
      * @return mixed array on success/PearError on failure
      *
      * @access public
      * @since 1.0
      */
-    function getFlags($msg_id = null)
+    function getFlags($msg_id = null, $includeUid = false)
     {
         // You can also provide an array of numbers to those emails
         if ($msg_id != null) {
@@ -1818,8 +1843,12 @@ class Net_IMAP extends Net_IMAPProtocol
             $message_set = '1:*';
         }
 
-
-        if (PEAR::isError($ret = $this->cmdFetch($message_set, 'FLAGS'))) {
+        if ($includeUid) {
+            $ret = $this->cmdUidFetch($message_set, 'FLAGS');
+        } else {
+            $ret = $this->cmdFetch($message_set, 'FLAGS');
+        }
+        if (PEAR::isError($ret)) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -2265,7 +2294,8 @@ class Net_IMAP extends Net_IMAPProtocol
      * Search function. Sends the SEARCH command
      *
      * @param string  $search_list Search criterias
-     * @param boolean $uidSearch   If set to true UID SEARCH is send instead of SEARCH
+     * @param boolean $uidSearch   If set to true UID SEARCH is send 
+     *                             instead of SEARCH
      *
      * @return mixed Message array or PEAR Error on failure
      *

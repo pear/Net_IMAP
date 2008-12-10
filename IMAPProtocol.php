@@ -90,7 +90,7 @@ class Net_IMAPProtocol
      * @var boolean
      * @access private
      */
-    var $_debug = false;
+    var $_debug    = false;
     var $dbgDialog = '';
 
 
@@ -829,8 +829,11 @@ class Net_IMAPProtocol
 
         if (isset($ret['PARSED'])) {
             for ($i=0; $i<count($ret['PARSED']); $i++) {
-                $command               = $ret['PARSED'][$i]['EXT'];
-                $parsed[key($command)] = $command[key($command)];
+                if (array_key_exists('EXT', $ret['PARSED'][$i]) 
+                   && is_array($ret['PARSED'][$i]['EXT'])) {
+                    $command               = $ret['PARSED'][$i]['EXT'];
+                    $parsed[key($command)] = $command[key($command)];
+                }
             }
         }
 
@@ -1134,12 +1137,12 @@ class Net_IMAPProtocol
         if ($this->hasCapability('LITERAL+') == true) {
             if ($time != '') {
                 $timeAsString = date("d-M-Y H:i:s O", $time);
-                $param = sprintf("%s %s\"%s\"{%s+}\r\n%s",
-                                 $mailbox_name,
-                                 $flags_list,
-                                 $timeAsString, 
-                                 $msg_size,
-                                 $msg);
+                $param        = sprintf("%s %s\"%s\"{%s+}\r\n%s",
+                                        $mailbox_name,
+                                        $flags_list,
+                                        $timeAsString, 
+                                        $msg_size,
+                                        $msg);
             } else {
                 $param = sprintf("%s%s {%s+}\r\n%s",
                                  $mailbox_name,
@@ -1204,6 +1207,10 @@ class Net_IMAPProtocol
     function cmdExpunge()
     {
         $ret = $this->_genericCommand('EXPUNGE');
+
+        if (PEAR::isError($ret)) {
+            return new PEAR_Error('could not Expunge!');
+        }
 
         if (isset($ret['PARSED'])) {
             $parsed = $ret['PARSED'];
@@ -2492,7 +2499,8 @@ class Net_IMAPProtocol
         }
         
         $pos++;
-
+        
+        $delimCount = 0;
         while ($str[$pos] !== '"' && $pos < $len) {
             // this is a fix to stop before the delimiter, in broken 
             // string messages containing an odd number of double quotes
@@ -2500,10 +2508,21 @@ class Net_IMAPProtocol
             // eiter a new startDelimiter or an other stopDelimiter
             // that allows to have something 
             // like '"Name (Nick)" <email>' containing one delimiter
-                
+            // if you have something like "Name ((something))" we must 
+            // count the delimiters (and hope that they are not unbalanced too)
+            // and check if we have a negative amount of delimiters or no 
+            // delimiters to meet the stop condition, before we run into a 
+            // closing double quote
+            if ($str[$pos] === $startDelim) {
+                $delimCount++; 
+            }
+            if ($str[$pos] === $stopDelim) {
+                $delimCount--;
+            }
             if ($str[$pos] === $stopDelim 
                 && ($str[$pos+1] === $startDelim 
-                || $str[$pos+1] === $stopDelim)) {
+                || $str[$pos+1] === $stopDelim
+                && $delimCount <= 0)) {
                 // stopDelimited need to be parsed outside!
                 $pos--;
                 return false;
