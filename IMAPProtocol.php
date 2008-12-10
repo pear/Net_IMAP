@@ -150,6 +150,13 @@ class Net_IMAPProtocol
     var $_useUTF_7 = true;
 
 
+    /**
+     * Character encoding
+     * @var string
+     * @access private
+     */
+    var $_encoding = 'ISO-8859-1';
+
 
     /**
      * Constructor
@@ -3535,7 +3542,7 @@ class Net_IMAPProtocol
         }
 
         if (function_exists('mb_convert_encoding')) {
-            return mb_convert_encoding($str, 'UTF7-IMAP', 'ISO-8859-1');
+            return mb_convert_encoding($str, 'UTF7-IMAP', $this->_encoding);
         }
         
         $encoded_utf7 = '';
@@ -3621,7 +3628,7 @@ class Net_IMAPProtocol
         //return imap_utf7_decode($str);
 
         if (function_exists('mb_convert_encoding')) {
-            return mb_convert_encoding($str, 'ISO-8859-1', 'UTF7-IMAP');
+            return mb_convert_encoding($str, $this->_encoding, 'UTF7-IMAP');
         }
 
         $base64_part  = '';

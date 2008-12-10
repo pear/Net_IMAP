@@ -40,11 +40,16 @@ class Net_IMAP extends Net_IMAPProtocol
      * @param string $host           The server to connect to.
      * @param int    $port           The port to connect to.
      * @param bool   $enableSTARTTLS Enable STARTTLS support
+     * @param string $encoding       Character encoding
      */
-    function Net_IMAP($host = 'localhost', $port = 143, $enableSTARTTLS = true)
+    function Net_IMAP($host = 'localhost', 
+                      $port = 143, 
+                      $enableSTARTTLS = true,
+                      $encoding = 'ISO-8859-1')
     {
         $this->Net_IMAPProtocol();
         $ret = $this->connect($host, $port, $enableSTARTTLS);
+        $this->_encoding = $encoding;
     }
 
 
