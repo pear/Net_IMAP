@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<package version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
-http://pear.php.net/dtd/tasks-1.0.xsd
-http://pear.php.net/dtd/package-2.0
-http://pear.php.net/dtd/package-2.0.xsd">
+<package version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
  <name>Net_IMAP</name>
  <channel>pear.php.net</channel>
  <summary>Provides an implementation of the IMAP protocol</summary>
- <description>Provides an implementation of the IMAP4Rev1 protocol using PEAR&apos;s Net_Socket and the optional Auth_SASL class.
+ <description>Provides an implementation of the IMAP4Rev1 protocol using PEAR's Net_Socket and the optional Auth_SASL class.
  </description>
  <lead>
   <name>Anish Mistry</name>
@@ -26,30 +23,30 @@ http://pear.php.net/dtd/package-2.0.xsd">
   <email>damlists@cnba.uba.ar</email>
   <active>no</active>
  </lead>
- <date>2008-03-10</date>
+ <date>2009-04-03</date>
  <version>
-  <release>1.1.0beta2</release>
-  <api>1.1.0beta2</api>
+  <release>1.1.0</release>
+  <api>1.1.0</api>
  </version>
  <stability>
-  <release>beta</release>
-  <api>beta</api>
+  <release>stable</release>
+  <api>stable</api>
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
- <notes>new beta release fixing bugs</notes>
+ <notes>New stable release introducing new features and fixing a lot of bugs</notes>
  <contents>
   <dir name="/">
    <dir name="docs">
-    <file baseinstalldir="Net" name="test_IMAP.php" role="test" />
-    <file baseinstalldir="Net" name="test_IMAPProtocol.php" role="test" />
+    <file baseinstalldir="Net" name="test_IMAP.php" role="test"/>
+    <file baseinstalldir="Net" name="test_IMAPProtocol.php" role="test"/>
    </dir> <!-- /docs -->
    <dir name="tests">
-    <file baseinstalldir="Net" name="settings.php.sample" role="test" />
-    <file baseinstalldir="Net" name="testAll.php" role="test" />
-    <file baseinstalldir="Net" name="testIMAP.php" role="test" />
+    <file baseinstalldir="Net" name="settings.php.sample" role="test"/>
+    <file baseinstalldir="Net" name="testAll.php" role="test"/>
+    <file baseinstalldir="Net" name="testIMAP.php" role="test"/>
    </dir> <!-- /tests -->
-   <file baseinstalldir="Net" name="IMAP.php" role="php" />
-   <file baseinstalldir="Net" name="IMAPProtocol.php" role="php" />
+   <file baseinstalldir="Net" name="IMAP.php" role="php"/>
+   <file baseinstalldir="Net" name="IMAPProtocol.php" role="php"/>
   </dir> <!-- / -->
  </contents>
  <dependencies>
@@ -74,8 +71,37 @@ http://pear.php.net/dtd/package-2.0.xsd">
    </package>
   </optional>
  </dependencies>
- <phprelease />
+ <phprelease/>
  <changelog>
+  <release>
+   <version>
+    <release>1.1.0</release>
+    <api>1.1.0</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <date>2009-04-03</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>Changes since last stable release 1.0.3
+  * add STARTTLS support for PHP 5.1 and above
+  * added methods for manipulating message flags
+  * added support for fetching the mailbox status at once (getStatus)
+  * added support for fetching subparts and the headers of subparts
+  * added support for fetching the namespace
+  * added support for fetching the bodystructure
+  * added support for setting flags when appending messages
+  * added method for parsing image information
+
+  * fixed bugs (1.0.3 and development versions:
+      #2954, #2963, #3438, #3638, #6813, #7468, #7588,
+      #8066, #8220, #8677, #8715, #8802, #9079, #9304,
+      #9598, #9647, #9929, #9979, #9986, #10509, #11725,
+      #12189, #13050, #14566
+
+  This release is based on 1.1.0beta2 and NOT current CVS version!</notes>
+  </release>
   <release>
    <version>
     <release>1.1.0beta1</release>
@@ -162,7 +188,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
    <license uri="http://www.php.net/license">PHP License</license>
    <notes>* The package is marked as stable
 * Fixed bug #1280
-* Fixed a bug returning &quot; , &quot;  when the password is not correct
+* Fixed a bug returning " , "  when the password is not correct
 
     
 
@@ -218,12 +244,12 @@ http://pear.php.net/dtd/package-2.0.xsd">
 - added hasFlag() method to allow th check any flag the IMAP server has
 - Modified isDeleted,isDraft,isAnswered,isFlagged,isSeen methods to use hasFlag to not duplicate the code
 - Removed duplicated method getHierarchyDelimiter() i have the same method in IMAP.php and IMAPProtocol.php but
-   in one class it is called getHierachyDelimiter and in the other getHierarchyDelimiter() (missed  &apos;r&apos; )
+   in one class it is called getHierachyDelimiter and in the other getHierarchyDelimiter() (missed  'r' )
 - Removed $_hierachyDelimiter variable (not needed anymore)
 - Fixed cmdSetQuotaRoot now it can set both quotas storage and messages
 - Reduced the class size by 10kbytes (IMAPProtocol.php)
 - moved all redundant code to _genericCommand.
-- Removed cmdUid() we don&apos;t need it anymore.
+- Removed cmdUid() we don't need it anymore.
       
 
    </notes>
@@ -255,9 +281,9 @@ http://pear.php.net/dtd/package-2.0.xsd">
    </stability>
    <date>2003-07-12</date>
    <license uri="http://www.php.net/license">PHP License</license>
-   <notes>- new getHierachyDelimiter() method to find the character used to separate subfolder parts (cyrus uses &apos;.&apos; , wu-imapd uses &apos;/&apos;)
+   <notes>- new getHierachyDelimiter() method to find the character used to separate subfolder parts (cyrus uses '.' , wu-imapd uses '/')
 - added a 3rd parameter to getMailboxes() to return an array with mailboxnames and mailbox attributes instead of an array of names
-- new method getACLRights() to list the Rights any user has over a mailbox without been administrator (this is relative to the user&apos;s INBOX)
+- new method getACLRights() to list the Rights any user has over a mailbox without been administrator (this is relative to the user's INBOX)
       
 
    </notes>
@@ -293,7 +319,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
 - getSummary(), getMessages(),deleteMessages() can accept an array of numbers as msg_id to retrieve/delete msg_id that
   are in the array (designed to use the search() output as parammeter.
   For example: to delete all seen messages in current mailbox you can do:
-        $imap-&gt;DeleteMessages($imap-&gt;search(&quot;SEEN&quot;));
+        $imap-&gt;DeleteMessages($imap-&gt;search("SEEN"));
 
       
 
@@ -325,7 +351,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
 - getSummary(), getMessages(),deleteMessages() can accept an array of numbers as msg_id to retrieve/delete msg_id that
   are in the array (designed to use the search() output as parammeter.
   For example: to delete all seen messages in current mailbox you can do:
-        $imap-&gt;getDeleteMessages($imap-&gt;search(&quot;SEEN&quot;));
+        $imap-&gt;getDeleteMessages($imap-&gt;search("SEEN"));
       
 
    </notes>
