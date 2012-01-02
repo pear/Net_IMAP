@@ -402,6 +402,11 @@ class Net_IMAP extends Net_IMAPProtocol
                                   . ', ' 
                                   . $ret['RESPONSE']['STR_CODE']);
         }
+
+        if (empty($ret['PARSED'])) {
+            return array();
+        }
+
         foreach ($ret['PARSED'] as $msg) {
             $ret_aux[] = array('msg_id' => $msg['NRO'],
                                'size'   => $msg['EXT']['RFC822.SIZE'],
