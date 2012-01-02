@@ -23,9 +23,9 @@
   <active>no</active>
  </lead>
  <date>2012-01-02</date>
- <time>12:18:17</time>
+ <time>12:20:29</time>
  <version>
-  <release>1.1.0</release>
+  <release>1.1.1</release>
   <api>1.1.0</api>
  </version>
  <stability>
@@ -34,7 +34,14 @@
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
  <notes>
-New stable release introducing new features and fixing a lot of bugs
+QA release
+Bug #14566 Error in parsing protocol
+Bug #16288 getMessagesList breaks if mailbox is empty
+Bug #16819 IMAPProtocol::cmdStatus fails on error
+Bug #16891 bug in IMAPProtocol.php
+aka operator precedence error in _getNextToken
+Bug #18599 Wrong result from getAnnotation() for folder with non-ascii characters
+Bug #18768 failed to connect to Gmail (start TLS)
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
@@ -362,6 +369,28 @@ new beta release fixing bugs and introducing new features
    <license uri="http://www.php.net/license">PHP License</license>
    <notes>
 New stable release introducing new features and fixing a lot of bugs
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.1.1</release>
+    <api>1.1.0</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <date>2012-01-02</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>
+QA release
+Bug #14566 Error in parsing protocol
+Bug #16288 getMessagesList breaks if mailbox is empty
+Bug #16819 IMAPProtocol::cmdStatus fails on error
+Bug #16891 bug in IMAPProtocol.php
+aka operator precedence error in _getNextToken
+Bug #18599 Wrong result from getAnnotation() for folder with non-ascii characters
+Bug #18768 failed to connect to Gmail (start TLS)
    </notes>
   </release>
  </changelog>
