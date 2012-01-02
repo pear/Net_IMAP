@@ -1057,7 +1057,7 @@ class Net_IMAPProtocol
 
         $ret = $this->_genericCommand('STATUS', 
                                       $mailbox_name . ' (' . $request . ')');
-        if (isset($ret['PARSED'])) {
+        if (!PEAR::isError($ret) && isset($ret['PARSED'])) {
             $ret['PARSED'] = $ret['PARSED'][count($ret['PARSED'])-1]['EXT'];
         }
         return $ret;
