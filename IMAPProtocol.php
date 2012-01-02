@@ -206,6 +206,12 @@ class Net_IMAPProtocol
                                                            $this->_streamContextOptions))) {
             return $error;
         }
+        if ($port == 993) {
+            if (!$this->_socket->enableCrypto(true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) { 
+                return new PEAR_Error('Failed to set crypto');
+            }
+        }
+
         if (PEAR::isError($this->_getRawResponse())) {
             return new PEAR_Error('unable to open socket');
         }
