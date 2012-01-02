@@ -3268,7 +3268,7 @@ class Net_IMAPProtocol
             $this->_parseSpace($str, __LINE__, __FILE__);
             $attrs = $this->_arrayfyContent($str);
 
-            $result_array = array('MAILBOX'    => $mailbox, 
+            $result_array = array('MAILBOX'    => $this->utf7Decode($mailbox), 
                                   'ENTRY'      => $entry, 
                                   'ATTRIBUTES' => $attrs);
             return $result_array;
