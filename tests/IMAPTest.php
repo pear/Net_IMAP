@@ -27,10 +27,6 @@ require_once 'Net/IMAP.php';
  */
 require_once 'PHPUnit/Framework/TestCase.php';
 
-/**
- * Connection settings
- */
-require_once 'settings.php';
 
 /**
  * The test class
@@ -51,8 +47,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
         // we need to login for getting the delimiter
         $conn->login(USER, PASS);
         if (PEAR::isError($this->delimiter = $conn->getHierarchyDelimiter())) {
-            echo 'Can not get hierarchy delimiter';
-            exit;
+            $this->fail('Can not get hierarchy delimiter');
         }
         $conn->disconnect();
 
@@ -62,6 +57,12 @@ class testIMAP extends PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
+        if (file_exists(dirname(__FILE__) . '/settings.php')) {
+             include_once dirname(__FILE__) . '/settings.php';
+        } else {
+             $this->markTestSkipped("No settings.php available?");
+        }
+
         $this->fixture = new Net_IMAP();
 
         // some mailboxnames to test with
