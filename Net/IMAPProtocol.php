@@ -3524,7 +3524,7 @@ class Net_IMAPProtocol
     function _genericCommand($command, $params = '')
     {
         if (!$this->_connected) {
-            return new PEAR_Error('not connected! (CMD:$command)');
+            return new PEAR_Error("not connected! (CMD:$command)");
         }
         $cmdid = $this->_getCmdId();
         $this->_putCMD($cmdid, $command, $params);
