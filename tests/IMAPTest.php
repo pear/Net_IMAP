@@ -31,7 +31,7 @@ require_once 'PHPUnit/Framework/TestCase.php';
 /**
  * The test class
  */
-class testIMAP extends PHPUnit_Framework_TestCase 
+class testIMAP extends PHPUnit_Framework_TestCase
 {
     // contains the object handle of the Net_IMAP class
     protected $fixture;
