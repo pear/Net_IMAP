@@ -269,7 +269,8 @@ class Net_IMAP extends Net_IMAPProtocol
      */
     function examineMailbox($mailbox)
     {
-        if (PEAR::isError($ret = $this->cmdExamine($mailbox))) {
+        $ret = $this->cmdExamine($mailbox);
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -536,7 +537,7 @@ class Net_IMAP extends Net_IMAPProtocol
         } else {
             $ret = $this->cmdFetch($msg_id, 'BODY' . $partId . '[TEXT]');
         }
-        if (PEAR::isError($ret)) {
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -569,7 +570,7 @@ class Net_IMAP extends Net_IMAPProtocol
         } else {
             $ret = $this->cmdFetch($msg_id, 'BODY[' . $partId . ']');
         }
-        if (PEAR::isError($ret)) {
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -605,7 +606,7 @@ class Net_IMAP extends Net_IMAPProtocol
         } else {
             $ret = $this->cmdFetch($msg_id, 'BODYSTRUCTURE');
         }
-        if (PEAR::isError($ret)) {
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -976,7 +977,7 @@ class Net_IMAP extends Net_IMAPProtocol
         } else {
             $ret = $this->cmdFetch($message_set, 'RFC822');
         }
-        if (PEAR::isError($ret)) {
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -1176,7 +1177,7 @@ class Net_IMAP extends Net_IMAPProtocol
         } else {
             $ret = $this->cmdFetch($message_set, 'ENVELOPE');
         }
-        if (PEAR::isError($ret)) {
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -1303,7 +1304,7 @@ class Net_IMAP extends Net_IMAPProtocol
         } else {
             $ret = $this->cmdStore($message_set, $dataitem, $value);
         }
-        if (PEAR::isError($ret)) {
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -1361,7 +1362,7 @@ class Net_IMAP extends Net_IMAPProtocol
         } else {
             $ret = $this->cmdCopy($message_set, $dest_mailbox);
         }
-        if (PEAR::isError($ret)) {
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
