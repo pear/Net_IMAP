@@ -1395,7 +1395,7 @@ class Net_IMAP extends Net_IMAPProtocol
             $mailbox = $this->getCurrentMailbox();
         }
         $ret = $this->cmdAppend($mailbox, $rfc_message, $flags_list);
-        if (PEAR::isError($ret)) {
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -1863,7 +1863,7 @@ class Net_IMAP extends Net_IMAPProtocol
         } else {
             $ret = $this->cmdFetch($message_set, 'FLAGS');
         }
-        if (PEAR::isError($ret)) {
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -1941,7 +1941,7 @@ class Net_IMAP extends Net_IMAPProtocol
         } else {
             $ret = $this->cmdStore($message_set, $dataitem, $flaglist);
         }
-        if (PEAR::isError($ret)) {
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -2324,7 +2324,7 @@ class Net_IMAP extends Net_IMAPProtocol
         } else {
             $ret = $this->cmdSearch($search_list);
         }
-        if (PEAR::isError($ret)) {
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -2366,7 +2366,7 @@ class Net_IMAP extends Net_IMAPProtocol
         } else {
             $ret = $this->cmdSort($sort_command);
         }
-        if (PEAR::isError($ret)) {
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
