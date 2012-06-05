@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Net_IMAP provides an implementation of the IMAP protocol
  *
@@ -42,7 +43,7 @@ class Net_IMAP extends Net_IMAPProtocol
      * @param bool   $enableSTARTTLS Enable STARTTLS support
      * @param string $encoding       Character encoding
      */
-    function Net_IMAP($host = 'localhost', 
+    function Net_IMAP($host = 'localhost',
                       $port = 143, 
                       $enableSTARTTLS = true,
                       $encoding = 'ISO-8859-1')
@@ -2966,7 +2967,7 @@ class Net_IMAP extends Net_IMAPProtocol
     }
 
 
-    
+
     /**
      * same as deleteMessages($msg_id)
      * Net_POP3 Compatibility function
@@ -2983,4 +2984,4 @@ class Net_IMAP extends Net_IMAPProtocol
     }
 
 }
-?>
+
