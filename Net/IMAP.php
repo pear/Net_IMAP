@@ -1685,9 +1685,10 @@ class Net_IMAP extends Net_IMAPProtocol
      */
     function renameMailbox($oldmailbox, $newmailbox, $options = null)
     {
-        if (PEAR::isError($ret = $this->cmdRename($oldmailbox, 
+        $ret = $this->cmdRename($oldmailbox, 
                                                   $newmailbox, 
-                                                  $options))) {
+                                                  $options);
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -1723,7 +1724,8 @@ class Net_IMAP extends Net_IMAPProtocol
         if ($mailbox == null) {
             $mailbox = $this->getCurrentMailbox();
         }
-        if (PEAR::isError($ret = $this->cmdSubscribe($mailbox))) {
+        $ret = $this->cmdSubscribe($mailbox);
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -1752,7 +1754,8 @@ class Net_IMAP extends Net_IMAPProtocol
         if ($mailbox == null) {
             $mailbox = $this->getCurrentMailbox();
         }
-        if (PEAR::isError($ret = $this->cmdUnsubscribe($mailbox))) {
+        $ret = $this->cmdUnsubscribe($mailbox);
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -1808,7 +1811,8 @@ class Net_IMAP extends Net_IMAPProtocol
             }
         }
 
-        if (PEAR::isError($ret = $this->cmdLsub($reference, $mailbox))) {
+        $ret = $this->cmdLsub($reference, $mailbox);
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         // $ret=$this->cmdLsub($mailbox_base, $mailbox_name);
@@ -2305,7 +2309,8 @@ class Net_IMAP extends Net_IMAPProtocol
      */
     function expunge()
     {
-        if (PEAR::isError($ret = $this->cmdExpunge())) {
+        $ret = $this->cmdExpunge();
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -2418,7 +2423,8 @@ class Net_IMAP extends Net_IMAPProtocol
             $mailbox_name = $this->getCurrentMailbox();
         }
 
-        if (PEAR::isError($ret = $this->cmdGetQuotaRoot($mailbox_name))) {
+        $ret = $this->cmdGetQuotaRoot($mailbox_name);
+        if ($ret instanceOf PEAR_Error) {
             return new PEAR_Error($ret->getMessage());
         }
 
@@ -2461,7 +2467,8 @@ class Net_IMAP extends Net_IMAPProtocol
             $mailbox_name = $this->getCurrentMailbox();
         }
 
-        if (PEAR::isError($ret = $this->cmdGetQuota($mailbox_name))) {
+        $ret = $this->cmdGetQuota($mailbox_name);
+        if ($ret instanceOf PEAR_Error) {
             return new PEAR_Error($ret->getMessage());
         }
 
@@ -2504,7 +2511,8 @@ class Net_IMAP extends Net_IMAPProtocol
             $mailbox_name = $this->getCurrentMailbox();
         }
 
-        if (PEAR::isError($ret = $this->cmdGetQuota($mailbox_name))) {
+        $ret = $this->cmdGetQuota($mailbox_name);
+        if ($ret instanceOf PEAR_Error) {
             return new PEAR_Error($ret->getMessage());
         }
 
@@ -2542,7 +2550,8 @@ class Net_IMAP extends Net_IMAPProtocol
      */
     function setStorageQuota($mailbox_name, $quota)
     {
-        if (PEAR::isError($ret = $this->cmdSetQuota($mailbox_name, $quota))) {
+        $ret = $this->cmdSetQuota($mailbox_name, $quota);
+        if ($ret instanceOf PEAR_Error) {
             return new PEAR_Error($ret->getMessage());
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -2568,9 +2577,10 @@ class Net_IMAP extends Net_IMAPProtocol
      */
     function setMessagesQuota($mailbox_name, $quota)
     {
-        if (PEAR::isError($ret = $this->cmdSetQuota($mailbox_name,
+        $ret = $this->cmdSetQuota($mailbox_name,
                                                     '',
-                                                    $quota))) {
+                                                    $quota);
+        if ($ret instanceOf PEAR_Error) {
             return new PEAR_Error($ret->getMessage());
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -2607,7 +2617,8 @@ class Net_IMAP extends Net_IMAPProtocol
         if ($mailbox_name == null) {
             $mailbox_name = $this->getCurrentMailbox();
         }
-        if (PEAR::isError($ret = $this->cmdGetACL($mailbox_name))) {
+        $ret = $this->cmdGetACL($mailbox_name);
+        if ($ret instanceOf PEAR_Error) {
             return new PEAR_Error($ret->getMessage());
         }
 
@@ -2640,7 +2651,8 @@ class Net_IMAP extends Net_IMAPProtocol
      */
     function setACL($mailbox_name, $user, $acl)
     {
-        if (PEAR::isError($ret = $this->cmdSetACL($mailbox_name, $user, $acl))) {
+        $ret = $this->cmdSetACL($mailbox_name, $user, $acl);
+        if ($ret instanceOf PEAR_Error) {
             return new PEAR_Error($ret->getMessage());
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -2666,7 +2678,8 @@ class Net_IMAP extends Net_IMAPProtocol
      */
     function deleteACL($mailbox_name, $user)
     {
-        if (PEAR::isError($ret = $this->cmdDeleteACL($mailbox_name, $user))) {
+        $ret = $this->cmdDeleteACL($mailbox_name, $user);
+        if ($ret instanceOf PEAR_Error) {
             return new PEAR_Error($ret->getMessage());
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -2698,7 +2711,8 @@ class Net_IMAP extends Net_IMAPProtocol
             $mailbox_name = $this->getCurrentMailbox();
         }
 
-        if (PEAR::isError($ret = $this->cmdMyRights($mailbox_name))) {
+        $ret = $this->cmdMyRights($mailbox_name);
+        if ($ret instanceOf PEAR_Error) {
             return new PEAR_Error($ret->getMessage());
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -2738,7 +2752,8 @@ class Net_IMAP extends Net_IMAPProtocol
         }
 
 
-        if (PEAR::isError($ret = $this->cmdListRights($mailbox_name, $user))) {
+        $ret = $this->cmdListRights($mailbox_name, $user);
+        if ($ret instanceOf PEAR_Error) {
             return new PEAR_Error($ret->getMessage());
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -2782,9 +2797,10 @@ class Net_IMAP extends Net_IMAPProtocol
             $mailbox_name = $this->getCurrentMailbox();
         }
 
-        if (PEAR::isError($ret = $this->cmdSetAnnotation($mailbox_name, 
+        $ret = $this->cmdSetAnnotation($mailbox_name, 
                                                          $entry, 
-                                                         $values))) {
+                                                         $values);
+        if ($ret instanceOf PEAR_Error) {
             return new PEAR_Error($ret->getMessage());
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -2814,9 +2830,10 @@ class Net_IMAP extends Net_IMAPProtocol
             $mailbox_name = $this->getCurrentMailbox();
         }
 
-        if (PEAR::isError($ret = $this->cmdDeleteAnnotation($mailbox_name, 
+        $ret = $this->cmdDeleteAnnotation($mailbox_name, 
                                                             $entry, 
-                                                            $values))) {
+                                                            $values);
+        if ($ret instanceOf PEAR_Error) {
             return new PEAR_Error($ret->getMessage());
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -2853,9 +2870,10 @@ class Net_IMAP extends Net_IMAPProtocol
             $values = array($values);
         }
 
-        if (PEAR::isError($ret = $this->cmdGetAnnotation($mailbox_name, 
+        $ret = $this->cmdGetAnnotation($mailbox_name, 
                                                          $entries, 
-                                                         $values))) {
+                                                         $values);
+        if ($ret instanceOf PEAR_Error) {
             return new PEAR_Error($ret->getMessage());
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -2960,7 +2978,8 @@ class Net_IMAP extends Net_IMAPProtocol
      */
     function getMsg($msg_id)
     {
-        if (PEAR::isError($ret = $this->getMessages($msg_id, false))) {
+        $ret = $this->getMessages($msg_id, false);
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         // false means that getMessages() must not use the msg number as array key
