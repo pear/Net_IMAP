@@ -82,7 +82,7 @@ class Net_IMAP extends Net_IMAPProtocol
             if ($this->hasCapability('STARTTLS') === true 
                 && $enableSTARTTLS === true 
                 && function_exists('stream_socket_enable_crypto') === true) {
-                if (PEAR::isError($res = $this->cmdStartTLS())) {
+                if (($res = $this->cmdStartTLS()) instanceOf PEAR_Error) {
                     return $res;
                 }
             }
@@ -91,7 +91,7 @@ class Net_IMAP extends Net_IMAPProtocol
         if (empty($ret)) {
             return new PEAR_Error("Unexpected response on connection");
         }
-        if (PEAR::isError($ret)) {
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (isset($ret['RESPONSE']['CODE'])) {
@@ -138,20 +138,20 @@ class Net_IMAP extends Net_IMAPProtocol
             }
 
             //Try the selected Auth method
-            if (PEAR::isError($ret = $this->cmdAuthenticate($user, 
-                                                            $pass, 
-                                                            $method))) {
+            $ret = $this->cmdAuthenticate($user, $pass, $method);
+            if ($ret instanceOf PEAR_Error) {
                 // Verify the methods that we have in common with the server
                 if (is_array($this->_serverAuthMethods)) {
                     $commonMethods = array_intersect($this->supportedAuthMethods, $this->_serverAuthMethods);
                 } else {
                     $this->_serverAuthMethods = null;
                 }
-                if ($this->_serverAuthMethods == null 
-                    || count($commonMethods) == 0 
+                if ($this->_serverAuthMethods == null
+                    || count($commonMethods) == 0
                     || $this->supportedAuthMethods == null) {
                     // The server does not have any auth method, so I try LOGIN
-                    if ( PEAR::isError($ret = $this->cmdLogin($user, $pass))) {
+                    $ret = $this->cmdLogin($user, $pass);
+                    if ($ret instanceOf PEAR_Error){
                         return $ret;
                     }
                 } else {
@@ -159,13 +159,14 @@ class Net_IMAP extends Net_IMAPProtocol
                 }
             }
             if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
-                return new PEAR_Error($ret['RESPONSE']['CODE'] 
-                                      . ', ' 
+                return new PEAR_Error($ret['RESPONSE']['CODE']
+                                      . ', '
                                       . $ret['RESPONSE']['STR_CODE']);
             }
         } else {
             //The user request "PLAIN"  auth, we use the login command
-            if (PEAR::isError($ret = $this->cmdLogin($user, $pass))) {
+            $ret = $this->cmdLogin($user, $pass);
+            if ($ret instanceOf PEAR_Error) {
                 return $ret;
             }
             if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -177,7 +178,8 @@ class Net_IMAP extends Net_IMAPProtocol
 
         if ($selectMailbox) {
             //Select INBOX
-            if (PEAR::isError($ret = $this->cmdSelect($this->getCurrentMailbox()))) {
+            $ret = $this->cmdSelect($this->getCurrentMailbox());
+            if ($ret instanceOf PEAR_Error) {
                 return $ret;
             }
         }
@@ -204,7 +206,8 @@ class Net_IMAP extends Net_IMAPProtocol
     function disconnect($expungeOnExit = false)
     {
         if ($expungeOnExit) {
-            if (PEAR::isError($ret = $this->cmdExpunge())) {
+            $ret = $this->cmdExpunge();
+            if ($ret instanceOf PEAR_Error) {
                 return $ret;
             }
             if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -215,7 +218,8 @@ class Net_IMAP extends Net_IMAPProtocol
             }
         }
 
-        if (PEAR::isError($ret = $this->cmdLogout())) {
+        $ret = $this->cmdLogout();
+        if ($ret InstanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -240,7 +244,8 @@ class Net_IMAP extends Net_IMAPProtocol
      */
     function selectMailbox($mailbox)
     {
-        if (PEAR::isError($ret = $this->cmdSelect($mailbox))) {
+        $ret = $this->cmdSelect($mailbox);
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -305,7 +310,7 @@ class Net_IMAP extends Net_IMAPProtocol
         } else {
             $ret = $this->cmdFetch($msg_id, $command);
         }
-        if (PEAR::isError($ret)) {
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -337,14 +342,16 @@ class Net_IMAP extends Net_IMAPProtocol
      *
      * @access public
      */
-    function getParsedHeaders($msg_id, 
-                              $keysToUpper = false, 
-                              $part_id = '', 
+    function getParsedHeaders($msg_id,
+                              $keysToUpper = false,
+                              $part_id = '',
                               $uidFetch = false)
     {
-        if (PEAR::isError($ret = $this->getRawHeaders($msg_id, 
-                                                      $part_id, 
-                                                      $uidFetch))) {
+        $ret = $this->getRawHeaders($msg_id,
+                                    $part_id,
+                                    $uidFetch);
+
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
 
@@ -394,8 +401,8 @@ class Net_IMAP extends Net_IMAPProtocol
         } else {
             $message_set = '1:*';
         }
-        if (PEAR::isError($ret = $this->cmdFetch($message_set,
-                                                 '(RFC822.SIZE UID)'))) {
+        $ret = $this->cmdFetch($message_set, '(RFC822.SIZE UID)');
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
@@ -448,7 +455,7 @@ class Net_IMAP extends Net_IMAPProtocol
                                    '(RFC822.SIZE UID FLAGS ENVELOPE INTERNALDATE BODY.PEEK[HEADER.FIELDS (CONTENT-TYPE X-PRIORITY)])');
         }
         // $ret=$this->cmdFetch($message_set,"(RFC822.SIZE UID FLAGS ENVELOPE INTERNALDATE BODY[1.MIME])");
-        if (PEAR::isError($ret)) {
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
