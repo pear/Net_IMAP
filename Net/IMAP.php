@@ -1634,9 +1634,10 @@ class Net_IMAP extends Net_IMAPProtocol
     {
         // TODO verificar que el mailbox se encuentra vacio y, sino borrar los
         // mensajes antes~!!!!!!
-        // ToDo find someone who can translate the above todo
-
-        if (PEAR::isError($ret = $this->cmdDelete($mailbox))) {
+        // English: verify that the mailbox is empty, if not delete the
+        // messages before
+        $ret = $this->cmdDelete($mailbox);
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
