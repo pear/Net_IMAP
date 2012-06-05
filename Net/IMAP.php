@@ -2276,7 +2276,7 @@ class Net_IMAP extends Net_IMAPProtocol
      */
     function hasFlag($message_nro, $flag)
     {
-        if (PEAR::isError($resp = $this->getFlags($message_nro))) {
+        if ($resp = $this->getFlags($message_nro) instanceOf PEAR_Error) {
             return $resp;
         }
         if (isset($resp[0])) {

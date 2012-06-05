@@ -827,8 +827,9 @@ class Net_IMAPProtocol
     function cmdSelect($mailbox)
     {
         $mailbox_name = $this->_createQuotedString($mailbox);
-        if (!PEAR::isError($ret = $this->_genericCommand('SELECT', 
-                                                         $mailbox_name))) {
+        $ret = $this->_genericCommand('SELECT',
+            $mailbox_name);
+        if (!$ret instanceOf PEAR_Error) {
             $this->currentMailbox = $mailbox;
         }
         return $ret;
