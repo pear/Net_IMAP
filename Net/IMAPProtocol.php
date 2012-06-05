@@ -1063,7 +1063,7 @@ class Net_IMAPProtocol
 
         $ret = $this->_genericCommand('STATUS', 
                                       $mailbox_name . ' (' . $request . ')');
-        if (!PEAR::isError($ret) && isset($ret['PARSED'])) {
+        if (!$ret instanceOf PEAR_Error && isset($ret['PARSED'])) {
             $ret['PARSED'] = $ret['PARSED'][count($ret['PARSED'])-1]['EXT'];
         }
         return $ret;
@@ -1214,7 +1214,7 @@ class Net_IMAPProtocol
     {
         $ret = $this->_genericCommand('EXPUNGE');
 
-        if (PEAR::isError($ret)) {
+        if ($ret instanceOf PEAR_Error) {
             return new PEAR_Error('could not Expunge!');
         }
 
