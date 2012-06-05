@@ -581,7 +581,8 @@ class Net_IMAPProtocol
             return $error;
         }
 
-        if (PEAR::isError($args = $this->_recvLn())) {
+        $args = $this->_recvLn();
+        if ($args instanceOf PEAR_Error) {
             return $args;
         }
 
@@ -602,7 +603,8 @@ class Net_IMAPProtocol
             return $error;
         }
 
-        if (PEAR::isError($args = $this->_recvLn())) {
+        $args = $this->_recvLn();
+        if ($args instanceOf PEAR_Error) {
             return $args;
         }
 
@@ -636,7 +638,8 @@ class Net_IMAPProtocol
             return $error;
         }
 
-        if (PEAR::isError($args = $this->_recvLn())) {
+        $args = $this->_recvLn();
+        if ($args instanceOf PEAR_Error) {
             return $args;
         }
 
@@ -678,7 +681,8 @@ class Net_IMAPProtocol
             return $error;
         }
 
-        if (PEAR::isError($args = $this->_recvLn())) {
+        $args = $this->_recvLn();
+        if ($args instanceOf PEAR_Error) {
             return $args;
         }
 
@@ -694,7 +698,8 @@ class Net_IMAPProtocol
             return $error;
         }
 
-        if (PEAR::isError($args = $this->_recvLn())) {
+        $args = $this->_recvLn();
+        if ($args instanceOf PEAR_Error) {
             return $args;
         }
 
@@ -767,7 +772,8 @@ class Net_IMAPProtocol
             return new PEAR_Error('not connected!');
         }
 
-        if (PEAR::isError($args = $this->_genericCommand('LOGOUT'))) {
+        $args = $this->_genericCommand('LOGOUT');
+        if ($args instanceOf PEAR_Error) {
             return $args;
         }
         if ($this->_socket->disconnect() instanceOf PEAR_Error) {
