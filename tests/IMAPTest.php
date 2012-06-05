@@ -32,7 +32,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
 
     private $delimiter;
 
-    private $reservedFolders;
+    private $reservedFolders = array();
 
     private $mailboxNames;
 
