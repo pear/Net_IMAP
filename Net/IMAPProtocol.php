@@ -3749,7 +3749,8 @@ class Net_IMAPProtocol
      */
     function cmdStartTLS()
     {
-        if (PEAR::isError($res = $this->_genericCommand('STARTTLS'))) {
+        $res = $this->_genericCommand('STARTTLS');
+        if ($res instanceOf PEAR_Error) {
             return $res;
         }
 
@@ -3765,7 +3766,8 @@ class Net_IMAPProtocol
         }
 
         // RFC says we need to query the server capabilities again
-        if (PEAR::isError($res = $this->cmdCapability())) {
+        $res = $this->cmdCapability();
+        if ($res instanceOf PEAR_Error) {
             $msg = 'Failed to connect, server said: ' . $res->getMessage();
             return new PEAR_Error($msg);
         }
