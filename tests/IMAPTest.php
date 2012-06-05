@@ -329,7 +329,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
         $this->logout();
     }
 
-    public function testGetHierarchyDelimiter() 
+    public function testGetHierarchyDelimiter()
     {
         $this->login();
         $result = $this->fixture->getHierarchyDelimiter();
@@ -339,4 +339,3 @@ class testIMAP extends PHPUnit_Framework_TestCase
 
 }
 
-?>

@@ -3569,7 +3569,7 @@ class Net_IMAPProtocol
         if (function_exists('mb_convert_encoding')) {
             return mb_convert_encoding($str, 'UTF7-IMAP', $this->_encoding);
         }
-        
+
         $encoded_utf7 = '';
         $base64_part  = '';
         if (is_array($str)) {

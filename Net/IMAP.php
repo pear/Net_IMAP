@@ -1632,7 +1632,7 @@ class Net_IMAP extends Net_IMAPProtocol
      */
     function deleteMailbox($mailbox)
     {
-        // TODO verificar que el mailbox se encuentra vacio y, sino borrar los 
+        // TODO verificar que el mailbox se encuentra vacio y, sino borrar los
         // mensajes antes~!!!!!!
         // ToDo find someone who can translate the above todo
 
@@ -1646,9 +1646,9 @@ class Net_IMAP extends Net_IMAPProtocol
         }
         return true;
     }
-    
-    
-    
+
+
+
     /**
      * Renames the mailbox $mailbox
      *
