@@ -199,11 +199,12 @@ class Net_IMAPProtocol
         if ($this->_connected) {
             return new PEAR_Error('already connected, logout first!');
         }
-        if (PEAR::isError($error = $this->_socket->connect($host, 
-                                                           $port, 
-                                                           null, 
-                                                           $this->_timeout, 
-                                                           $this->_streamContextOptions))) {
+        $error = $this->_socket->connect($host, 
+                                        $port, 
+                                        null, 
+                                        $this->_timeout, 
+                                        $this->_streamContextOptions);
+        if ($error instanceOf PEAR_Error) {
             return $error;
         }
         if ($port == 993) {
@@ -212,7 +213,7 @@ class Net_IMAPProtocol
             }
         }
 
-        if (PEAR::isError($this->_getRawResponse())) {
+        if ($this->_getRawResponse() instanceOf PEAR_Error) {
             return new PEAR_Error('unable to open socket');
         }
         $this->_connected = true;
@@ -329,7 +330,8 @@ class Net_IMAPProtocol
         if ($this->_socket->eof()) {
             return new PEAR_Error('Failed to write to socket: (connection lost!)');
         }
-        if (PEAR::isError($error = $this->_socket->write($data))) {
+        $error = $this->_socket->write($data);
+        if ($error instanceOf PEAR_Error) {
             return new PEAR_Error('Failed to write to socket: ' 
                                   . $error->getMessage());
         }
@@ -354,7 +356,8 @@ class Net_IMAPProtocol
      */
     function _recvLn()
     {
-        if (PEAR::isError($this->lastline = $this->_socket->gets(8192))) {
+        $this->lastline = $this->_socket->gets(8192);
+        if ($this->lastline instanceOf PEAR_Error) {
             return new PEAR_Error('Failed to write to socket: ' 
                                   . $this->lastline->getMessage());
         }
@@ -414,7 +417,7 @@ class Net_IMAPProtocol
     function _getRawResponse($commandId = '*')
     {
         $arguments = '';
-        while (!PEAR::isError($this->_recvLn())) {
+        while (!$this->_recvLn() instanceOf PEAR_Error) {
             $reply_code = strtok($this->lastline, ' ');
             $arguments .= $this->lastline;
             if (!(strcmp($commandId, $reply_code))) {
@@ -528,7 +531,8 @@ class Net_IMAPProtocol
 
         $cmdid = $this->_getCmdId();
 
-        if (PEAR::isError($method = $this->_getBestAuthMethod($userMethod))) {
+        $method = $this->_getBestAuthMethod($userMethod);
+        if ($method instanceOf PEAR_Error) {
             return $method;
         }
 
@@ -570,9 +574,10 @@ class Net_IMAPProtocol
      */
     function _authDigestMD5($uid, $pwd, $cmdid)
     {
-        if (PEAR::isError($error = $this->_putCMD($cmdid,
+        $error = $this->_putCMD($cmdid,
                                                   'AUTHENTICATE',
-                                                  'DIGEST-MD5'))) {
+                                                  'DIGEST-MD5');
+        if ($error instanceOf PEAR_Error) {
             return $error;
         }
 
@@ -592,7 +597,8 @@ class Net_IMAPProtocol
                                                         'localhost', 
                                                         'imap'));
 
-        if (PEAR::isError($error = $this->_send($auth_str . "\r\n"))) {
+        $error = $this->_send($auth_str . "\r\n");
+        if ($error instanceOf PEAR_Error) {
             return $error;
         }
 
@@ -602,7 +608,8 @@ class Net_IMAPProtocol
 
         // We don't use the protocol's third step because IMAP doesn't allow
         // subsequent authentication, so we just silently ignore it.
-        if (PEAR::isError($error = $this->_send("\r\n"))) {
+        $error = $this->_send("\r\n");
+        if ($error instanceOf PEAR_Error) {
             return $error;
         }
     }
@@ -622,9 +629,10 @@ class Net_IMAPProtocol
      */
     function _authCramMD5($uid, $pwd, $cmdid)
     {
-        if (PEAR::isError($error = $this->_putCMD($cmdid,
+        $error = $this->_putCMD($cmdid,
                                                   'AUTHENTICATE',
-                                                  'CRAM-MD5'))) {
+                                                  'CRAM-MD5');
+        if ($error instanceOf PEAR_Error) {
             return $error;
         }
 
@@ -642,7 +650,8 @@ class Net_IMAPProtocol
                                                       $pwd,
                                                       $challenge));
 
-        if (PEAR::isError($error = $this->_send($auth_str . "\r\n"))) {
+        $error = $this->_send($auth_str . "\r\n");
+        if ($error instanceOf PEAR_Error) {
             return $error;
         }
     }
@@ -662,9 +671,10 @@ class Net_IMAPProtocol
      */
     function _authLOGIN($uid, $pwd, $cmdid)
     {
-        if (PEAR::isError($error = $this->_putCMD($cmdid,
+        $error = $this->_putCMD($cmdid,
                                                   'AUTHENTICATE',
-                                                  'LOGIN'))) {
+                                                  'LOGIN');
+        if ($error instanceOf PEAR_Error) {
             return $error;
         }
 
@@ -679,7 +689,8 @@ class Net_IMAPProtocol
         $challenge = base64_decode($challenge);
         $auth_str  = base64_encode($uid);
 
-        if (PEAR::isError($error = $this->_send($auth_str . "\r\n"))) {
+        $error = $this->_send($auth_str . "\r\n");
+        if ($error instanceOf PEAR_Error) {
             return $error;
         }
 
@@ -689,7 +700,8 @@ class Net_IMAPProtocol
 
         $auth_str = base64_encode($pwd);
 
-        if (PEAR::isError($error = $this->_send($auth_str . "\r\n"))) {
+        $error = $this->_send($auth_str . "\r\n");
+        if ($error instanceOf PEAR_Error) {
             return $error;
         }
     }
@@ -758,7 +770,7 @@ class Net_IMAPProtocol
         if (PEAR::isError($args = $this->_genericCommand('LOGOUT'))) {
             return $args;
         }
-        if (PEAR::isError($this->_socket->disconnect())) {
+        if ($this->_socket->disconnect() instanceOf PEAR_Error) {
             return new PEAR_Error('socket disconnect failed');
         }
 
@@ -1156,26 +1168,30 @@ class Net_IMAPProtocol
                                  $msg_size,
                                  $msg);
             }
-            if (PEAR::isError($error = $this->_putCMD($cmdid, 
+            $error = $this->_putCMD($cmdid, 
                                                       'APPEND', 
-                                                      $param))) {
-                return $error;
+                                                      $param);
+            if ($error instanceOf PEAR_Error) {
+                    return $error;
             }
         } else {
             $param = sprintf("%s%s {%s}",
                              $mailbox_name,
                              $flags_list,
                              $msg_size);
-            if (PEAR::isError($error = $this->_putCMD($cmdid, 
+            $error = $this->_putCMD($cmdid, 
                                                       'APPEND', 
-                                                      $param))) {
+                                                      $param);
+            if ($error instanceOf PEAR_Error) {
                 return $error;
             }
-            if (PEAR::isError($error = $this->_recvLn())) {
+            $error = $this->_recvLn();
+            if ($error instanceOf PEAR_Error) {
                 return $error;
             }
 
-            if (PEAR::isError($error = $this->_send($msg . "\r\n"))) {
+            $error = $this->_send($msg . "\r\n");
+            if ($error instanceOf PEAR_Error) {
                 return $error;
             }
         }
