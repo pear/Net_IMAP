@@ -1598,7 +1598,8 @@ class Net_IMAP extends Net_IMAPProtocol
     function mailboxExist($mailbox)
     {
         // true means do an exact match
-        if (PEAR::isError($ret = $this->getMailboxes($mailbox, true))) {
+        $ret = $this->getMailboxes($mailbox, true);
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (count($ret) > 0) {
