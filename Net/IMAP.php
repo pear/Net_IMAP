@@ -17,7 +17,7 @@
 /**
  * IMAPProtocol.php holds protocol implementation for IMAP.php
  */
-require_once 'Net/IMAPProtocol.php';
+require_once __DIR__ . '/IMAPProtocol.php';
 
 
 /**
