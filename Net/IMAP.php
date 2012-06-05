@@ -1627,7 +1627,8 @@ class Net_IMAP extends Net_IMAPProtocol
      */
     function createMailbox($mailbox, $options = null)
     {
-        if (PEAR::isError($ret = $this->cmdCreate($mailbox, $options))) {
+        $ret = $this->cmdCreate($mailbox, $options);
+        if ($ret instanceOf PEAR_Error) {
             return $ret;
         }
         if (strtoupper($ret['RESPONSE']['CODE']) != 'OK') {
