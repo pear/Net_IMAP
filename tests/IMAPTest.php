@@ -22,6 +22,8 @@
  */
 require_once 'Net/IMAP.php';
 
+require_once 'PHPUnit/Autoload.php';
+
 /**
  * The test class
  */
