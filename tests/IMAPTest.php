@@ -38,7 +38,20 @@ class testIMAP extends PHPUnit_Framework_TestCase
 
     private $mailboxNames;
 
-    public function setUp()
+    function testIMAP() {
+        $conn = new Net_IMAP(HOST, PORT);
+        // we need to login for getting the delimiter
+        $conn->login(USER, PASS);
+        if (PEAR::isError($this->delimiter = $conn->getHierarchyDelimiter())) {
+            $this->fail('Can not get hierarchy delimiter');
+        }
+        $conn->disconnect();
+
+        $this->reservedFolders = array( 'INBOX',
+                                        'INBOX'.$this->delimiter.'Trash');
+    }
+
+    protected function setUp()
     {
         if (file_exists(dirname(__FILE__) . '/settings.php')) {
              include_once dirname(__FILE__) . '/settings.php';
@@ -59,38 +72,19 @@ class testIMAP extends PHPUnit_Framework_TestCase
         // $this->messages['test_mail3'] = file_get_contents('mails3.mbox');
     }
 
-    function testIMAP() {
-        return;
-        $this->markTestSkipped();
-        $conn = new Net_IMAP(HOST, PORT);
-        // we need to login for getting the delimiter
-        $conn->login(USER, PASS);
-        $this->delimiter = $conn->getHierarchyDelimiter();
-        if ($this->delimiter instanceOf PEAR_Error) {
-            $this->fail('Can not get hierarchy delimiter');
-        }
-        $conn->disconnect();
-
-        $this->reservedFolders = array( 'INBOX',
-                                        'INBOX'.$this->delimiter.'Trash');
-    }
-
-
-    public function tearDown()
+    protected function tearDown()
     {
-        if ($this->fixture) {
-            // delete all mailboxes except INBOX
-            $mailboxes = $this->fixture->getMailboxes();
-            foreach ($mailboxes as $mailbox) {
-                if (in_array($mailbox, $this->reservedFolders)) {
-                    continue;
-                }
-                $this->fixture->deleteMailbox($mailbox);
+        // delete all mailboxes except INBOX
+        $mailboxes = $this->fixture->getMailboxes();
+        foreach ($mailboxes as $mailbox) {
+            if (in_array($mailbox, $this->reservedFolders)) {
+                continue;
             }
-
-            // delete instance
-            unset($this->fixture);
+            $this->fixture->deleteMailbox($mailbox);
         }
+
+        // delete instance
+        unset($this->fixture);
     }
 
     protected function login()
@@ -222,7 +216,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
 
         $result = $this->fixture->createMailbox($mailboxname);
         $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not create mailbox');
-        
+
         $result = $this->fixture->mailboxExist($mailboxname);
         $this->assertTrue($result, 'Mailbox should exist');
 
@@ -340,4 +334,3 @@ class testIMAP extends PHPUnit_Framework_TestCase
     }
 
 }
-
