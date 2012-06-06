@@ -22,23 +22,19 @@
  */
 require_once 'Net/IMAP.php';
 
-/**
- * Use PHPUnit3 for testing
- */
-require_once 'PHPUnit/Framework/TestCase.php';
-
+require_once 'PHPUnit/Autoload.php';
 
 /**
  * The test class
  */
-class testIMAP extends PHPUnit_Framework_TestCase 
+class testIMAP extends PHPUnit_Framework_TestCase
 {
     // contains the object handle of the Net_IMAP class
     protected $fixture;
 
     private $delimiter;
 
-    private $reservedFolders;
+    private $reservedFolders = array();
 
     private $mailboxNames;
 
@@ -78,31 +74,33 @@ class testIMAP extends PHPUnit_Framework_TestCase
 
     protected function tearDown()
     {
-        // delete all mailboxes except INBOX
-        $mailboxes = $this->fixture->getMailboxes();
-        foreach ($mailboxes as $mailbox) {
-            if (in_array($mailbox, $this->reservedFolders)) {
-                continue;
+        if ($this->fixture) {
+            // delete all mailboxes except INBOX
+            $mailboxes = $this->fixture->getMailboxes();
+            foreach ($mailboxes as $mailbox) {
+                if (in_array($mailbox, $this->reservedFolders)) {
+                    continue;
+                }
+                $this->fixture->deleteMailbox($mailbox);
             }
-            $this->fixture->deleteMailbox($mailbox);
-        }
 
-        // delete instance
-        unset($this->fixture);
+            // delete instance
+            unset($this->fixture);
+        }
     }
 
     protected function login()
     {
         $result = $this->fixture->connect(HOST, PORT);
-        $this->assertTrue(!PEAR::isError($result), 'Can not connect');
+        $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not connect');
         $result = $this->fixture->login(USER, PASS);
-        $this->assertTrue(!PEAR::isError($result), 'Can not log in');
+        $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not log in');
     }
 
     protected function logout()
     {
         $result = $this->fixture->disconnect();
-        $this->assertTrue(!PEAR::isError($result), 'Error on disconnect');
+        $this->assertNotInstanceOf('PEAR_Error', $result, 'Error on disconnect');
     }
 
 
@@ -114,25 +112,25 @@ class testIMAP extends PHPUnit_Framework_TestCase
     public function testConnect()
     {
         $result = $this->fixture->connect(HOST, PORT);
-        $this->assertTrue(!PEAR::isError($result), 'Can not connect');
+        $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not connect');
     }
 
     public function testLogin()
     {
         $result = $this->fixture->connect(HOST, PORT);
-        $this->assertTrue(!PEAR::isError($result), 'Can not connect');
+        $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not connect');
         $result = $this->fixture->login(USER, PASS);
-        $this->assertTrue(!PEAR::isError($result), 'Can not login');
+        $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not login');
     }
 
     public function testDisconnect()
     {
         $result = $this->fixture->connect(HOST, PORT);
-        $this->assertTrue(!PEAR::isError($result), 'Can not connect');
+        $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not connect');
         $result = $this->fixture->login(USER, PASS);
         $this->assertTrue($result, 'Can not login');
         $result = $this->fixture->disconnect();
-        $this->assertTrue(!PEAR::isError($result), 'Error on disconnect');
+        $this->assertNotInstanceOf('PEAR_Error', $result, 'Error on disconnect');
     }
 
 
@@ -169,7 +167,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
         // print_r($mailboxes);
         $this->logout();
 
-        $this->assertTrue(!PEAR::isError($mailboxes), 'Can not list mailboxes');
+        $this->assertNotInstanceOf('PEAR_Error', $mailboxes, 'Can not list mailboxes');
     }
 
     public function testSelectMailbox()
@@ -178,7 +176,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
         $mailboxes = $this->fixture->getMailboxes();
         foreach ($mailboxes as $mailbox) {
             $result = $this->fixture->selectMailbox($mailbox);
-            $this->assertTrue(!PEAR::isError($result), 'Can not select mailbox '.$mailbox);
+            $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not select mailbox '.$mailbox);
         }
         $this->logout();
     }
@@ -195,7 +193,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
                 continue;
             }
             $result = $this->fixture->renameMailbox($mailbox, $mailbox.'renamed');
-            $this->assertTrue(!PEAR::isError($result), 'Can not rename mailbox '.$mailbox);
+            $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not rename mailbox '.$mailbox);
         }
         $mailboxes_new = $this->fixture->getMailboxes();
         for ($i=0; $i < sizeof($mailboxes_new); $i++) {
@@ -219,8 +217,8 @@ class testIMAP extends PHPUnit_Framework_TestCase
         $this->assertFalse($result, 'Mailbox should NOT exist');
 
         $result = $this->fixture->createMailbox($mailboxname);
-        $this->assertTrue(!PEAR::isError($result), 'Can not create mailbox');
-        
+        $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not create mailbox');
+
         $result = $this->fixture->mailboxExist($mailboxname);
         $this->assertTrue($result, 'Mailbox should exist');
 
@@ -240,7 +238,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
                 continue;
             }
             $result = $this->fixture->deleteMailbox($mailbox);
-            $this->assertTrue(!PEAR::isError($result), 'Can not delete mailbox '.$mailbox);
+            $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not delete mailbox '.$mailbox);
         }
         // print_r($this->fixture->getMailboxes());
 
@@ -254,7 +252,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
         foreach ($mailboxes as $mailbox) {
             $result = $this->fixture->getMailboxSize($mailbox);
             // print_r($result);
-            $this->assertTrue(!PEAR::isError($result), 'Can not get size for mailbox '.$mailbox);
+            $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not get size for mailbox '.$mailbox);
         }
 
         $this->logout();
@@ -271,7 +269,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
         $this->login();
         $this->fixture->createMailbox('INBOX'.$this->delimiter.'testSubscribe');
         $result = $this->fixture->subscribeMailbox('INBOX'.$this->delimiter.'testSubscribe');
-        $this->assertTrue(!PEAR::isError($result), 'Can not subscribe Mailbox');
+        $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not subscribe Mailbox');
 
         $this->logout();
     }
@@ -285,8 +283,8 @@ class testIMAP extends PHPUnit_Framework_TestCase
         $subscribed = $this->fixture->listsubscribedMailboxes();
         //print_r($subscribed);
         $this->logout();
-        
-        $this->assertTrue(!PEAR::isError($subscribed), 'Can not list subscribed mailboxes');
+
+        $this->assertNotInstanceOf('PEAR_Error', $subscribed, 'Can not list subscribed mailboxes');
     }
 
     public function testUnsubscribeMailbox()
@@ -299,7 +297,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
                 continue;
             }
             $result = $this->fixture->unsubscribeMailbox($mailbox);
-            $this->assertTrue(!PEAR::isError($result), 'Can not unsubscribe mailbox '.$mailbox);
+            $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not unsubscribe mailbox '.$mailbox);
         }
         // print_r($this->fixture->listsubscribedMailboxes());
 
@@ -314,7 +312,7 @@ class testIMAP extends PHPUnit_Framework_TestCase
         }
         $this->fixture->selectMailbox('INBOX');
         $result = $this->fixture->getStorageQuotaRoot();
-        $this->assertTrue(!PEAR::isError($result), 'Can not get StorageQuotaRoot');
+        $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not get StorageQuotaRoot');
         $this->logout();
     }
 
@@ -325,18 +323,16 @@ class testIMAP extends PHPUnit_Framework_TestCase
             return;
         }
         $result = $this->fixture->getACL();
-        $this->assertTrue(!PEAR::isError($result), 'Can not get ACL');
+        $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not get ACL');
         $this->logout();
     }
 
-    public function testGetHierarchyDelimiter() 
+    public function testGetHierarchyDelimiter()
     {
         $this->login();
         $result = $this->fixture->getHierarchyDelimiter();
-        $this->assertTrue(!PEAR::isError($result), 'Can not get Hierarchy Delimiter');
+        $this->assertNotInstanceOf('PEAR_Error', $result, 'Can not get Hierarchy Delimiter');
         $this->logout();
     }
 
 }
-
-?>
