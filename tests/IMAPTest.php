@@ -74,17 +74,19 @@ class testIMAP extends PHPUnit_Framework_TestCase
 
     protected function tearDown()
     {
-        // delete all mailboxes except INBOX
-        $mailboxes = $this->fixture->getMailboxes();
-        foreach ($mailboxes as $mailbox) {
-            if (in_array($mailbox, $this->reservedFolders)) {
-                continue;
+        if ($this->fixture) {
+            // delete all mailboxes except INBOX
+            $mailboxes = $this->fixture->getMailboxes();
+            foreach ($mailboxes as $mailbox) {
+                if (in_array($mailbox, $this->reservedFolders)) {
+                    continue;
+                }
+                $this->fixture->deleteMailbox($mailbox);
             }
-            $this->fixture->deleteMailbox($mailbox);
-        }
 
-        // delete instance
-        unset($this->fixture);
+            // delete instance
+            unset($this->fixture);
+        }
     }
 
     protected function login()
