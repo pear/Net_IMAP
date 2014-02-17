@@ -1,2 +1,7 @@
 *.swp
 tests/settings.php
+
+# composer related
+composer.lock
+composer.phar
+vendor
