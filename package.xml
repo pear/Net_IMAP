@@ -22,10 +22,10 @@
   <email>damlists@cnba.uba.ar</email>
   <active>no</active>
  </lead>
- <date>2012-01-02</date>
- <time>12:20:29</time>
+ <date>2014-03-31</date>
+ <time>23:03:32</time>
  <version>
-  <release>1.1.1</release>
+  <release>1.1.3</release>
   <api>1.1.0</api>
  </version>
  <stability>
@@ -35,22 +35,23 @@
  <license uri="http://www.php.net/license">PHP License</license>
  <notes>
 QA release
-Bug #14566 Error in parsing protocol
-Bug #16288 getMessagesList breaks if mailbox is empty
-Bug #16819 IMAPProtocol::cmdStatus fails on error
-Bug #16891 bug in IMAPProtocol.php
-aka operator precedence error in _getNextToken
-Bug #18599 Wrong result from getAnnotation() for folder with non-ascii characters
-Bug #18768 failed to connect to Gmail (start TLS)
+Bug #17482 Please, consider updating license to PHP 3.01 doconnor
+Bug #19730 Malformed or incomplete distributed tar.gz file doconnor
+Bug #19875 Please provide LICENSE file doconnor
+Bug #19876 Bad role  doconnor
+Bug #19946 Login fails when using password with double quotes  doconnor
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
-   <file baseinstalldir="/" md5sum="5c0ba56d97e907f96fab92e80edc7134" name="docs/test_IMAP.php" role="doc" />
-   <file baseinstalldir="/" md5sum="c3547119c9651516102901d3285e50a1" name="docs/test_IMAPProtocol.php" role="doc" />
-   <file baseinstalldir="/" md5sum="e7d2de7d8a7e0ebea5257af991f6d634" name="Net/IMAP.php" role="php" />
-   <file baseinstalldir="/" md5sum="bb12925da13d18ccae5df4a9f9996045" name="Net/IMAPProtocol.php" role="php" />
-   <file baseinstalldir="/" md5sum="85b3f9da805dcc25a3319a3337f98616" name="tests/IMAPTest.php" role="test" />
+   <file baseinstalldir="/" md5sum="bc5b60bd701574ab3def9f8908b2e73e" name="docs/test_IMAP.php" role="doc" />
+   <file baseinstalldir="/" md5sum="e7e4a97d15dca66dc7a26153b1c491fb" name="docs/test_IMAPProtocol.php" role="doc" />
+   <file baseinstalldir="/" md5sum="6bb7cc31c8fab7a9f69c34d42c7ec4d8" name="Net/IMAP.php" role="php" />
+   <file baseinstalldir="/" md5sum="62d8ac087532bc5578a924baf3993d3f" name="Net/IMAPProtocol.php" role="php" />
+   <file baseinstalldir="/" md5sum="101d3b41198232aaf74c3fb73f0aa541" name="tests/IMAPTest.php" role="test" />
    <file baseinstalldir="Net" md5sum="110ca6376a7940a7af8dc558199bbe66" name="tests/settings.php.sample" role="test" />
+   <file baseinstalldir="/" md5sum="cc5b1a843b6eb81b516fac224615fa85" name="composer.json" role="data" />
+   <file baseinstalldir="/" md5sum="52dd90569008fee5bcdbb22d945b1108" name="LICENSE.txt" role="doc" />
+   <file baseinstalldir="/" md5sum="671dae113c8fec2ab0b30be93f0507c1" name="phpunit.xml" role="test" />
    <file baseinstalldir="/" md5sum="69b080fed44decd9d15719dca27ae908" name="README" role="doc" />
   </dir>
  </contents>
@@ -391,6 +392,26 @@ Bug #16891 bug in IMAPProtocol.php
 aka operator precedence error in _getNextToken
 Bug #18599 Wrong result from getAnnotation() for folder with non-ascii characters
 Bug #18768 failed to connect to Gmail (start TLS)
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.1.3</release>
+    <api>1.1.0</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <date>2014-03-31</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>
+QA release
+Bug #17482 Please, consider updating license to PHP 3.01 doconnor
+Bug #19730 Malformed or incomplete distributed tar.gz file doconnor
+Bug #19875 Please provide LICENSE file doconnor
+Bug #19876 Bad role  doconnor
+Bug #19946 Login fails when using password with double quotes  doconnor
    </notes>
   </release>
  </changelog>
