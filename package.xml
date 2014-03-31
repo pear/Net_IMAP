@@ -45,13 +45,13 @@ Bug #18768 failed to connect to Gmail (start TLS)
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
-   <file baseinstalldir="/" md5sum="5c0ba56d97e907f96fab92e80edc7134" name="docs/test_IMAP.php" role="test" />
-   <file baseinstalldir="Net" md5sum="c3547119c9651516102901d3285e50a1" name="docs/test_IMAPProtocol.php" role="test" />
+   <file baseinstalldir="/" md5sum="5c0ba56d97e907f96fab92e80edc7134" name="docs/test_IMAP.php" role="doc" />
+   <file baseinstalldir="/" md5sum="c3547119c9651516102901d3285e50a1" name="docs/test_IMAPProtocol.php" role="doc" />
    <file baseinstalldir="/" md5sum="e7d2de7d8a7e0ebea5257af991f6d634" name="Net/IMAP.php" role="php" />
    <file baseinstalldir="/" md5sum="bb12925da13d18ccae5df4a9f9996045" name="Net/IMAPProtocol.php" role="php" />
    <file baseinstalldir="/" md5sum="85b3f9da805dcc25a3319a3337f98616" name="tests/IMAPTest.php" role="test" />
    <file baseinstalldir="Net" md5sum="110ca6376a7940a7af8dc558199bbe66" name="tests/settings.php.sample" role="test" />
-   <file baseinstalldir="/" md5sum="69b080fed44decd9d15719dca27ae908" name="README" role="data" />
+   <file baseinstalldir="/" md5sum="69b080fed44decd9d15719dca27ae908" name="README" role="doc" />
   </dir>
  </contents>
  <dependencies>
