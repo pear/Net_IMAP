@@ -4,4 +4,4 @@ install:
   - pear install package.xml
 php:
   - 5.4
-script: ./vendor/bin/phpunit -c phpunit.xml tests/
+script: sh ./vendor/bin/phpunit -c phpunit.xml tests/
