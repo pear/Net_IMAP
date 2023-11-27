@@ -18,16 +18,14 @@
  */
 
 /**
- * We are testing IMAP.php
+ * We are testing via composer
  */
-require_once 'Net/IMAP.php';
-
-require_once 'PHPUnit/Autoload.php';
+require_once 'vendor/autoload.php';
 
 /**
  * The test class
  */
-class testIMAP extends PHPUnit_Framework_TestCase
+class IMAPTest extends PHPUnit_Framework_TestCase
 {
     // contains the object handle of the Net_IMAP class
     protected $fixture;

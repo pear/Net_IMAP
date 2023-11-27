@@ -1,8 +1,7 @@
-# fix distro to Trusty to get PHP 5.4
 dist: trusty
 language: php
 install:
   - pear install package.xml
 php:
   - 5.4
-script: phpunit tests/
+script: ./vendor/bin/phpunit -c phpunit.xml tests/
