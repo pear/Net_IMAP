@@ -22,10 +22,9 @@
   <email>damlists@cnba.uba.ar</email>
   <active>no</active>
  </lead>
- <date>2014-03-31</date>
- <time>23:03:32</time>
+ <date>2024-03-10</date>
  <version>
-  <release>1.1.3</release>
+  <release>1.1.4</release>
   <api>1.1.0</api>
  </version>
  <stability>
@@ -34,12 +33,7 @@
  </stability>
  <license uri="http://www.php.net/license">PHP License</license>
  <notes>
-QA release
-Bug #17482 Please, consider updating license to PHP 3.01 doconnor
-Bug #19730 Malformed or incomplete distributed tar.gz file doconnor
-Bug #19875 Please provide LICENSE file doconnor
-Bug #19876 Bad role  doconnor
-Bug #19946 Login fails when using password with double quotes  doconnor
+PR #5:  Changed constructors for PHP 8 Support
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
@@ -412,6 +406,21 @@ Bug #19730 Malformed or incomplete distributed tar.gz file doconnor
 Bug #19875 Please provide LICENSE file doconnor
 Bug #19876 Bad role  doconnor
 Bug #19946 Login fails when using password with double quotes  doconnor
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>1.1.4</release>
+    <api>1.1.0</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <date>2024-03-10</date>
+   <license uri="http://www.php.net/license">PHP License</license>
+   <notes>
+PR #5:  Changed constructors for PHP 8 Support
    </notes>
   </release>
  </changelog>
